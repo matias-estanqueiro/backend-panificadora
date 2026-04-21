@@ -1,0 +1,20 @@
+[
+    {
+        "id": "insumo-0",
+        "nombre": "Harina",
+        "unidad": "gramo",
+        "cantidad": 2000
+    },
+    {
+        "id": "insumo-1",
+        "nombre": "Huevo",
+        "unidad": "unidad",
+        "cantidad": 2000
+    },
+    {
+        "id": "18675f5d-1110-4c37-85b7-fc01c2cd3477",
+        "nombre": "Sal",
+        "unidad": "gramo",
+        "cantidad": 1000
+    }
+]

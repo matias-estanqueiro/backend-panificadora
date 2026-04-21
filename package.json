@@ -1,0 +1,29 @@
+{
+  "name": "backend-panificadora",
+  "version": "1.0.0",
+  "description": "Backend transaccional diseñado para estructurar y centralizar la cadena de suministro interno de una panificadora con estructura matricial (Planta Central, Sucursales Propias y Franquicias).",
+  "homepage": "https://github.com/matias-estanqueiro/backend-panificadora#readme",
+  "bugs": {
+    "url": "https://github.com/matias-estanqueiro/backend-panificadora/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matias-estanqueiro/backend-panificadora.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
+    "pug": "^3.0.4",
+    "uuid": "^14.0.0"
+  }
+}
