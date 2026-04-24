@@ -34,25 +34,64 @@ El sistema controla el acceso según el Rol del usuario y su Unidad de Negocio a
 
 ## 3. Entidades del Negocio (Modelo de Dominio Lógico)
 
-* **UnidadNegocio:** Representa las locaciones (Planta, Sucursales, Franquicias).
+* **UnidadNegocio:** Representa las locaciones (Planta, Sucursales, Franquicias). Incluye la propiedad `codigo` (String, autogenerado a partir del nombre, único y normalizado) para evitar duplicados.
 * **Usuario:** Operadores del sistema, siempre vinculados a una Unidad de Negocio.
-* **Producto:** El panificado terminado que se vende (ej. Pan de Hamburguesa). Posee precio dual (Costo y Franquicia).
+* **Producto:** El panificado terminado que se vende (ej. Pan de Hamburguesa). Posee precio dual (Costo y Franquicia). Incluye la propiedad `codigo` (String, autogenerado a partir del nombre, único y normalizado) para evitar duplicados.
 * **Pedido (Venta):** Solicitud de productos realizada por una Sucursal o Franquicia a la Planta. Contiene múltiples `DetallePedido`.
-* **Insumo:** Materia prima cruda (ej. Harina) utilizada por la Planta.
+* **Insumo:** Materia prima cruda (ej. Harina) utilizada por la Planta. Incluye la propiedad `codigo` (String, autogenerado a partir del nombre, único y normalizado) para evitar duplicados.
 * **PedidoInsumo (Compra):** Solicitud de abastecimiento de materias primas realizada por la Planta. Contiene múltiples `DetalleInsumo`.
+### Sobre la propiedad `codigo` en entidades críticas
 
-## 4. Flujos Operativos y Máquinas de Estado
+La propiedad `codigo` es un identificador de tipo String, autogenerado a partir del nombre de la entidad (limpiando espacios, tildes y convirtiendo a mayúsculas). Su objetivo es evitar la creación de entidades duplicadas y facilitar búsquedas y validaciones transversales.
 
-### 4.1 Ciclo de Vida del Pedido de Venta
+## 4. Diccionario de Datos y Validaciones (Constraints)
+
+### 4.1 Insumo
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **codigo** (String): Autogenerado por el sistema. Regex: `^[A-Z0-9\-]+$` (Solo mayúsculas, números y guiones).
+* **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras, números y espacios. Regex: `^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$`
+* **unidad_medida** (String): Obligatorio. Valores estrictos (Enum): `["KG", "LTS", "UN"]`.
+* **stock_actual** (Number): Obligatorio. Debe ser mayor o igual a 0.
+* **punto_pedido** (Number): Obligatorio. Debe ser mayor o igual a 0.
+* **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
+
+### 4.2 Producto (Make-to-Order)
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **codigo** (String): Autogenerado por el sistema. Regex: `^[A-Z0-9\-]+$`
+* **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras, números y espacios. Regex: `^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$`
+* **precio_costo** (Number): Obligatorio. Debe ser mayor estricto a 0.
+* **precio_franquicia** (Number): Obligatorio. Debe ser mayor estricto a 0.
+* **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
+*(Nota: No maneja stock por tratarse de un modelo de producción bajo pedido).*
+
+### 4.3 Unidad de Negocio
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **codigo** (String): Autogenerado por el sistema. Regex: `^[A-Z0-9\-]+$`
+* **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras, números y espacios. Regex: `^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$`
+* **tipo** (String): Obligatorio. Valores estrictos (Enum): `["PLANTA_CENTRAL", "SUCURSAL_PROPIA", "FRANQUICIA"]`.
+* **direccion** (String): Obligatorio. Min: 5 caracteres, Max: 100. Admite caracteres alfanuméricos y puntuación básica.
+* **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
+
+### 4.4 Usuario
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras y espacios. Regex: `^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$`
+* **email** (String): Obligatorio. Debe tener un formato de correo electrónico válido. Debe ser único en el sistema.
+* **rol** (String): Obligatorio. Valores estrictos (Enum): `["ADMINISTRADOR", "ENCARGADO_SUCURSAL", "FRANQUICIADO"]`.
+* **unidad_negocio_id** (String/UUID): Obligatorio. Debe coincidir con el ID de una Unidad de Negocio existente (Validación referencial).
+* **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
+
+## 5. Flujos Operativos y Máquinas de Estado
+
+### 5.1 Ciclo de Vida del Pedido de Venta
 1.  **PENDIENTE:** Creado por Sucursal/Franquicia. Único estado donde se permite modificar o cancelar el pedido.
 2.  **EN_PRODUCCION:** La Planta comenzó a preparar el pedido. (Congelado para el solicitante).
 3.  **DESPACHADO:** Los productos salieron de la Planta.
 4.  **ENTREGADO:** Recepción confirmada. El pedido se cierra y se vuelve elegible para el cálculo de royalties.
 
-### 4.2 Flujo de Abastecimiento (Insumos)
+### 5.2 Flujo de Abastecimiento (Insumos)
 1.  **PENDIENTE:** Orden de compra emitida por la Planta.
 2.  **RECIBIDO:** La materia prima ingresó a la Planta. **Regla de Negocio:** Al pasar a este estado, el sistema debe aumentar el `stock_actual` del Insumo correspondiente automáticamente.
 
-## 5. Reportes Estratégicos (Casos de Uso Analíticos)
+## 6. Reportes Estratégicos (Casos de Uso Analíticos)
 * **Demanda Consolidada:** Agrupa todos los `DetallePedido` de los pedidos en estado `PENDIENTE` para sumarizar la cantidad total a producir de cada panificado.
 * **Base Imponible (Royalties):** Filtra los pedidos `ENTREGADO` de una Franquicia y calcula el 5% sobre el total facturado.

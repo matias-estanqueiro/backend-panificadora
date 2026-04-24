@@ -5,7 +5,7 @@ import app from '../app.js'
 const crearInsumo = async () => {
   const res = await request(app)
     .post('/api/insumos')
-    .send({ nombre: 'TestInsumo', unidad: 'kg', cantidad: 10 })
+    .send({ nombre: 'TestInsumo', unidad_medida: 'KG', stock_actual: 10, punto_pedido: 2 })
   return res.body.insumo?.id
 }
 
@@ -16,14 +16,48 @@ describe('Módulo Insumo', () => {
     expect(Array.isArray(res.body)).toBe(true)
   })
 
+
   test('POST /api/insumos debe crear un insumo exitosamente', async () => {
     const res = await request(app)
       .post('/api/insumos')
-      .send({ nombre: 'Azúcar', unidad: 'kg', cantidad: 5 })
+      .send({ nombre: 'Azúcar', unidad_medida: 'KG', stock_actual: 5, punto_pedido: 1 })
     expect(res.status).toBe(201)
     expect(res.body.insumo).toBeDefined()
     expect(res.body.insumo.nombre).toBe('Azúcar')
+    expect(res.body.insumo.codigo).toBeDefined()
+    expect(typeof res.body.insumo.codigo).toBe('string')
+    expect(res.body.insumo.codigo).toBe('AZUCAR')
     expect(res.body.insumo.activo).toBe(true)
+  })
+
+  test('POST /api/insumos con datos inválidos debe devolver 400', async () => {
+    const res = await request(app)
+      .post('/api/insumos')
+      .send({ nombre: '!!', unidad_medida: 'INVALID', stock_actual: -1, punto_pedido: -2 })
+    expect(res.status).toBe(400)
+    expect(res.body).toMatchObject({
+      error: true,
+      codigo_http: 400,
+      mensaje: 'Errores de validación',
+      detalles: expect.any(Array)
+    })
+  })
+
+  test('POST /api/insumos con nombre duplicado debe devolver 409', async () => {
+    // Crear el primero
+    await request(app)
+      .post('/api/insumos')
+      .send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
+    // Intentar crear el duplicado
+    const res = await request(app)
+      .post('/api/insumos')
+      .send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
+    expect(res.status).toBe(409)
+    expect(res.body).toEqual({
+      error: true,
+      codigo_http: 409,
+      mensaje: expect.any(String)
+    })
   })
 
   test('DELETE /api/insumos/:id debe hacer baja lógica y status 200', async () => {
@@ -37,15 +71,37 @@ describe('Módulo Insumo', () => {
   })
 
 
+
   test('PUT /api/insumos/:id debe actualizar un insumo exitosamente', async () => {
     const id = await crearInsumo()
     const res = await request(app)
       .put(`/api/insumos/${id}`)
-      .send({ nombre: 'Insumo Actualizado', cantidad: 99 })
+      .send({ nombre: 'Insumo Actualizado', unidad_medida: 'KG', stock_actual: 99, punto_pedido: 5 })
     expect(res.status).toBe(200)
     expect(res.body.insumo).toBeDefined()
     expect(res.body.insumo.nombre).toBe('Insumo Actualizado')
+    expect(res.body.insumo.codigo).toBe('INSUMO-ACTUALIZADO')
     expect(res.body.insumo.cantidad).toBe(99)
+  })
+
+  test('PUT /api/insumos/:id con nombre duplicado debe devolver 409', async () => {
+    // Crear dos insumos
+    const res1 = await request(app)
+      .post('/api/insumos')
+      .send({ nombre: 'Original', unidad: 'kg', cantidad: 1 })
+    const res2 = await request(app)
+      .post('/api/insumos')
+      .send({ nombre: 'Otro', unidad: 'kg', cantidad: 2 })
+    // Intentar actualizar el segundo con el nombre del primero
+    const res = await request(app)
+      .put(`/api/insumos/${res2.body.insumo.id}`)
+      .send({ nombre: 'Original' })
+    expect(res.status).toBe(409)
+    expect(res.body).toEqual({
+      error: true,
+      codigo_http: 409,
+      mensaje: expect.any(String)
+    })
   })
 
   test('PUT /api/insumos/:id con ID inválido debe devolver 404 y formato de error', async () => {

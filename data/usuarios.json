@@ -1,0 +1,18 @@
+[
+    {
+        "id": "768fee5f-5dad-4fcf-b7f8-ba2fe27afa44",
+        "nombre": "Juan Pérez",
+        "email": "juan@email.com",
+        "rol": "FRANQUICIADO",
+        "unidad_negocio_id": "f93190db-753d-4900-94d4-e9b3b2df9d21",
+        "activo": true
+    },
+    {
+        "id": "0a246f3e-cf61-4fc3-978a-a1740ff4f429",
+        "nombre": "TestUsuario",
+        "email": "baja@email.com",
+        "rol": "ENCARGADO_SUCURSAL",
+        "unidad_negocio_id": "f93190db-753d-4900-94d4-e9b3b2df9d21",
+        "activo": false
+    }
+]

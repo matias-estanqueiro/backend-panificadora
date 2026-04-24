@@ -1,6 +1,7 @@
 import { readData, writeData } from '../lib/fs.js'
 import Usuario from '../models/Usuario.js'
 import { v4 as uuidv4 } from 'uuid'
+import { usuarioSchema } from '../lib/schemas.js'
 
 const getUsuarios = async (req, res) => {
   try {
@@ -39,25 +40,28 @@ const getUsuario = async (req, res) => {
 
 const addUsuario = async (req, res) => {
   try {
-    const { nombre, rol, unidad_negocio_id } = req.body
-    if (!nombre || !rol || !unidad_negocio_id) {
+    const validacion = usuarioSchema.safeParse(req.body)
+    if (!validacion.success) {
       return res.status(400).json({
         error: true,
         codigo_http: 400,
-        mensaje: 'Faltan datos obligatorios para crear el usuario.'
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
       })
     }
-    const id = uuidv4()
-    const usuario = new Usuario(id, nombre, rol, unidad_negocio_id, true)
+    const { nombre, email, rol, unidad_negocio_id } = validacion.data
+    const emailNorm = email.trim().toLowerCase()
     const usuarios = await readData('usuarios')
-    const duplicate = usuarios.find(e => e.id === id)
-    if (duplicate) {
+    const duplicateEmail = usuarios.find(e => e.email === emailNorm && e.activo !== false)
+    if (duplicateEmail) {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: `Usuario with ID ${id} already exists. Usuario was not added.`
+        mensaje: 'El email ya está registrado para otro usuario.'
       })
     }
+    const id = uuidv4()
+    const usuario = new Usuario(id, nombre, emailNorm, rol, unidad_negocio_id, true)
     await writeData('usuarios', [ ...usuarios, usuario ])
     res.status(201).json({ message: 'Usuario added.', usuario })
   } catch (error) {
@@ -71,8 +75,17 @@ const addUsuario = async (req, res) => {
 
 const updateUsuario = async (req, res) => {
   try {
+    const validacion = usuarioSchema.safeParse(req.body)
+    if (!validacion.success) {
+      return res.status(400).json({
+        error: true,
+        codigo_http: 400,
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
+      })
+    }
     const id = req.params.id
-    const { nombre, rol, unidad_negocio_id } = req.body
+    const { nombre, email, rol, unidad_negocio_id } = validacion.data
     const usuarios = await readData('usuarios')
     const index = usuarios.findIndex(e => e.id === id)
     if (index === -1) {
@@ -82,9 +95,28 @@ const updateUsuario = async (req, res) => {
         mensaje: `Usuario not found with ID ${id}`
       })
     }
-    if (nombre !== undefined) usuarios[index].nombre = nombre
-    if (rol !== undefined) usuarios[index].rol = rol
-    if (unidad_negocio_id !== undefined) usuarios[index].unidad_negocio_id = unidad_negocio_id
+    // Validar email si se actualiza
+    if (email !== undefined) {
+      const emailNorm = email.trim().toLowerCase()
+      const duplicateEmail = usuarios.find(e => e.email === emailNorm && e.id !== id && e.activo !== false)
+      if (duplicateEmail) {
+        return res.status(409).json({
+          error: true,
+          codigo_http: 409,
+          mensaje: 'El email ya está registrado para otro usuario.'
+        })
+      }
+      usuarios[index].email = emailNorm
+    }
+      if (nombre !== undefined) {
+        usuarios[index].nombre = nombre
+      }
+      if (rol !== undefined) {
+        usuarios[index].rol = rol
+      }
+      if (unidad_negocio_id !== undefined) {
+        usuarios[index].unidad_negocio_id = unidad_negocio_id
+      }
     await writeData('usuarios', usuarios)
     res.json({ message: 'Usuario actualizado.', usuario: usuarios[index] })
   } catch (error) {

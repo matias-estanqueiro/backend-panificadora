@@ -1,6 +1,8 @@
 import { readData, writeData } from '../lib/fs.js'
 import Producto from '../models/Producto.js'
 import { v4 as uuidv4 } from 'uuid'
+import { generarCodigo } from '../lib/utils.js'
+import { productoSchema } from '../lib/schemas.js'
 
 const getProductos = async (req, res) => {
   try {
@@ -39,25 +41,31 @@ const getProducto = async (req, res) => {
 
 const addProducto = async (req, res) => {
   try {
-    const { nombre, unidad, precio_costo, precio_franquicia } = req.body
-    if (!nombre || !unidad || precio_costo === undefined || precio_franquicia === undefined) {
+    const validacion = productoSchema.safeParse(req.body)
+    if (!validacion.success) {
       return res.status(400).json({
         error: true,
         codigo_http: 400,
-        mensaje: 'Faltan datos obligatorios para crear el producto.'
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
       })
     }
-    const id = uuidv4()
-    const producto = new Producto(id, nombre, unidad, precio_costo, precio_franquicia, true)
+    const { nombre, precio_costo, precio_franquicia, activo } = validacion.data
+    const codigo = generarCodigo(nombre)
     const productos = await readData('productos')
-    const duplicate = productos.find(e => e.id === id)
+    const duplicate = productos.find(e => e.codigo === codigo && e.activo !== false)
     if (duplicate) {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: `Producto with ID ${id} already exists. Producto was not added.`
+        mensaje: 'La entidad ya existe.'
       })
     }
+    const id = uuidv4()
+    // El modelo espera: id, nombre, codigo, unidad, precio_costo, precio_franquicia, activo
+    // El campo 'unidad' no está en el schema, pero si el modelo lo requiere, tomarlo de req.body
+    const unidad = req.body.unidad || ''
+      const producto = new Producto(id, nombre, codigo, precio_costo, precio_franquicia, activo ?? true)
     await writeData('productos', [ ...productos, producto ])
     res.status(201).json({ message: 'Producto added.', producto })
   } catch (error) {
@@ -71,8 +79,17 @@ const addProducto = async (req, res) => {
 
 const updateProducto = async (req, res) => {
   try {
+    const validacion = productoSchema.safeParse(req.body)
+    if (!validacion.success) {
+      return res.status(400).json({
+        error: true,
+        codigo_http: 400,
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
+      })
+    }
     const id = req.params.id
-    const { nombre, unidad, precio_costo, precio_franquicia } = req.body
+    const { nombre, precio_costo, precio_franquicia, activo } = validacion.data
     const productos = await readData('productos')
     const index = productos.findIndex(e => e.id === id)
     if (index === -1) {
@@ -82,11 +99,23 @@ const updateProducto = async (req, res) => {
         mensaje: `Producto not found with ID ${id}`
       })
     }
-    // Actualizar solo los campos enviados
-    if (nombre !== undefined) productos[index].nombre = nombre
-    if (unidad !== undefined) productos[index].unidad = unidad
+    // Si cambia el nombre, regenerar el código y validar duplicado
+    if (nombre !== undefined) {
+      const nuevoCodigo = generarCodigo(nombre)
+      const existe = productos.find(e => e.codigo === nuevoCodigo && e.id !== id && e.activo !== false)
+      if (existe) {
+        return res.status(409).json({
+          error: true,
+          codigo_http: 409,
+          mensaje: 'La entidad ya existe.'
+        })
+      }
+      productos[index].nombre = nombre
+      productos[index].codigo = nuevoCodigo
+    }
     if (precio_costo !== undefined) productos[index].precio_costo = precio_costo
     if (precio_franquicia !== undefined) productos[index].precio_franquicia = precio_franquicia
+    if (activo !== undefined) productos[index].activo = activo
     await writeData('productos', productos)
     res.json({ message: 'Producto actualizado.', producto: productos[index] })
   } catch (error) {

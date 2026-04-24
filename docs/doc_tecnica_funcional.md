@@ -92,12 +92,14 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 #### 4.1.1 UnidadNegocio
 * `id` (String/UUID)
 * `nombre` (String)
+* `codigo` (String, autogenerado a partir del nombre, único y normalizado)
 * `tipo` (Enum): `['PLANTA', 'SUCURSAL', 'FRANQUICIA']`.
 * `activo` (Boolean)
 
 #### 4.1.2 Usuario
 * `id` (String/UUID)
 * `nombre` (String)
+* `email` (String, obligatorio, único, normalizado): Correo electrónico del usuario. Debe ser único entre usuarios activos. Se almacena en minúsculas y sin espacios.
 * `unidad_negocio_id` (String/UUID): Referencia cruzada.
 * `rol` (Enum): `['ADMIN_PLANTA', 'ENCARGADO_SUCURSAL', 'FRANQUICIADO']`.
 * `activo` (Boolean)
@@ -105,6 +107,7 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 #### 4.1.3 Producto
 * `id` (String/UUID)
 * `nombre` (String)
+* `codigo` (String, autogenerado a partir del nombre, único y normalizado)
 * `precio_costo` (Number)
 * `precio_franquicia` (Number)
 * `activo` (Boolean)
@@ -126,10 +129,19 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 #### 4.1.6 Insumo (Materia Prima)
 * `id` (String/UUID)
 * `nombre` (String)
+* `codigo` (String, autogenerado a partir del nombre, único y normalizado)
 * `unidad_medida` (String)
 * `stock_actual` (Number)
 * `punto_pedido` (Number)
 * `activo` (Boolean)
+
+### Sobre la propiedad `email` en Usuario
+
+El campo `email` es obligatorio y único para cada usuario activo. Antes de guardar, el email se normaliza (minúsculas, sin espacios). El sistema valida que no exista otro usuario activo con el mismo email; en caso de conflicto, retorna un error 409 con el formato estándar.
+
+### Sobre la propiedad `codigo` en entidades críticas
+
+La propiedad `codigo` es un identificador de tipo String, autogenerado a partir del nombre de la entidad (limpiando espacios, tildes y convirtiendo a mayúsculas). Su objetivo es evitar la creación de entidades duplicadas y facilitar búsquedas y validaciones transversales.
 
 #### 4.1.7 PedidoInsumo (Abastecimiento de Planta)
 * `id` (String/UUID)
