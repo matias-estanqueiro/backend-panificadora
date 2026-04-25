@@ -76,7 +76,7 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 * **id** (String/UUID): Generado automáticamente por el sistema.
 * **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras y espacios. Regex: `^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$`
 * **email** (String): Obligatorio. Debe tener un formato de correo electrónico válido. Debe ser único en el sistema.
-* **rol** (String): Obligatorio. Valores estrictos (Enum): `["ADMINISTRADOR", "ENCARGADO_SUCURSAL", "FRANQUICIADO"]`.
+* **rol** (String): Obligatorio. Valores estrictos (Enum): `["ADMIN_PLANTA", "ENCARGADO_SUCURSAL", "FRANQUICIADO"]`.
 * **unidad_negocio_id** (String/UUID): Obligatorio. Debe coincidir con el ID de una Unidad de Negocio existente (Validación referencial).
 * **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
 

@@ -76,17 +76,7 @@ const addUnidadNegocio = async (req, res) => {
 
 const updateUnidadNegocio = async (req, res) => {
   try {
-    const validacion = unidadNegocioSchema.safeParse(req.body)
-    if (!validacion.success) {
-      return res.status(400).json({
-        error: true,
-        codigo_http: 400,
-        mensaje: 'Errores de validación',
-        detalles: validacion.error.issues
-      })
-    }
     const id = req.params.id
-    const { nombre, tipo, direccion, activo } = validacion.data
     const unidades = await readData('unidadesNegocio')
     const index = unidades.findIndex(e => e.id === id)
     if (index === -1) {
@@ -96,6 +86,16 @@ const updateUnidadNegocio = async (req, res) => {
         mensaje: `UnidadNegocio not found with ID ${id}`
       })
     }
+    const validacion = unidadNegocioSchema.safeParse(req.body)
+    if (!validacion.success) {
+      return res.status(400).json({
+        error: true,
+        codigo_http: 400,
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
+      })
+    }
+    const { nombre, tipo, direccion, activo } = validacion.data
     // Si cambia el nombre, regenerar el código y validar duplicado
     if (nombre !== undefined) {
       const nuevoCodigo = generarCodigo(nombre)

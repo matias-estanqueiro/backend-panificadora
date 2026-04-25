@@ -1,6 +1,6 @@
 [
     {
-        "id": "4ab1a2b7-510a-432e-8cb7-e24309f7cfe6",
+        "id": "d025cddb-0ca7-4dee-9126-6bc8e7e3b49a",
         "nombre": "Azúcar",
         "codigo": "AZUCAR",
         "unidad_medida": "KG",
@@ -9,7 +9,7 @@
         "activo": true
     },
     {
-        "id": "d4a9041d-d556-43f9-a8d2-961ce2842ce7",
+        "id": "dceb5f94-a351-4066-bfd7-1c52db9f5a8a",
         "nombre": "Duplicado",
         "codigo": "DUPLICADO",
         "unidad_medida": "KG",
@@ -18,7 +18,7 @@
         "activo": true
     },
     {
-        "id": "f7fcc781-2c56-4abb-b225-0870f78ca87e",
+        "id": "ef3d6dec-2635-44b8-b693-bb0b44dc3cdd",
         "nombre": "TestInsumo",
         "codigo": "TESTINSUMO",
         "unidad_medida": "KG",
@@ -27,12 +27,30 @@
         "activo": false
     },
     {
-        "id": "d8e11434-d543-439e-a4f6-332d1d1906b7",
+        "id": "cb5821ca-de3e-43c4-9847-9c81edd0c05d",
         "nombre": "Insumo Actualizado",
         "codigo": "INSUMO-ACTUALIZADO",
         "unidad_medida": "KG",
         "stock_actual": 99,
         "punto_pedido": 5,
+        "activo": true
+    },
+    {
+        "id": "49672b5c-d77b-4e14-a29e-78338c47a28b",
+        "nombre": "Original",
+        "codigo": "ORIGINAL",
+        "unidad_medida": "KG",
+        "stock_actual": 1,
+        "punto_pedido": 1,
+        "activo": true
+    },
+    {
+        "id": "f426518e-c43a-4cc4-b1c9-3f4982afd914",
+        "nombre": "Otro",
+        "codigo": "OTRO",
+        "unidad_medida": "KG",
+        "stock_actual": 2,
+        "punto_pedido": 2,
         "activo": true
     }
 ]

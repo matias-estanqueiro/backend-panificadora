@@ -1,5 +1,10 @@
 import request from 'supertest'
 import app from '../app.js'
+import { limpiarData } from './helpers/limpiarData.js'
+
+beforeAll(() => {
+  limpiarData()
+})
 
 const crearUnidadNegocio = async () => {
   const res = await request(app)
@@ -74,13 +79,13 @@ describe('Módulo UnidadNegocio', () => {
   test('PUT /api/unidadesNegocio/:id con nombre duplicado debe devolver 409', async () => {
     const res1 = await request(app)
       .post('/api/unidadesNegocio')
-      .send({ nombre: 'Original', tipo: 'SUCURSAL' })
+      .send({ nombre: 'Original', tipo: 'SUCURSAL_PROPIA', direccion: 'Calle 1', activo: true })
     const res2 = await request(app)
       .post('/api/unidadesNegocio')
-      .send({ nombre: 'Otro', tipo: 'PLANTA' })
+      .send({ nombre: 'Otro', tipo: 'PLANTA_CENTRAL', direccion: 'Calle 2', activo: true })
     const res = await request(app)
       .put(`/api/unidadesNegocio/${res2.body.unidad.id}`)
-      .send({ nombre: 'Original' })
+      .send({ nombre: 'Original', tipo: 'PLANTA_CENTRAL', direccion: 'Calle 2', activo: true })
     expect(res.status).toBe(409)
     expect(res.body).toEqual({
       error: true,

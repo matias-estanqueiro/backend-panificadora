@@ -112,17 +112,7 @@ const deleteInsumo = async (req, res) => {
 
 const updateInsumo = async (req, res) => {
     try {
-        const validacion = insumoSchema.safeParse(req.body)
-        if (!validacion.success) {
-            return res.status(400).json({
-                error: true,
-                codigo_http: 400,
-                mensaje: 'Errores de validación',
-                detalles: validacion.error.issues
-            })
-        }
         const id = req.params.id
-        const { nombre, unidad_medida, stock_actual, punto_pedido, activo } = validacion.data
         const insumos = await readData('insumos')
         const index = insumos.findIndex(e => e.id === id)
         if (index === -1) {
@@ -132,6 +122,16 @@ const updateInsumo = async (req, res) => {
                 mensaje: `Insumo not found with ID ${id}`
             })
         }
+        const validacion = insumoSchema.safeParse(req.body)
+        if (!validacion.success) {
+            return res.status(400).json({
+                error: true,
+                codigo_http: 400,
+                mensaje: 'Errores de validación',
+                detalles: validacion.error.issues
+            })
+        }
+        const { nombre, unidad_medida, stock_actual, punto_pedido, activo } = validacion.data
         // Si cambia el nombre, regenerar el código y validar duplicado
         if (nombre !== undefined) {
             const nuevoCodigo = generarCodigo(nombre)

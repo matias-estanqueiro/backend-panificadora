@@ -1,5 +1,10 @@
 import request from 'supertest'
 import app from '../app.js'
+import { limpiarData } from './helpers/limpiarData.js'
+
+beforeAll(() => {
+  limpiarData()
+})
 
 const crearProducto = async () => {
   const res = await request(app)
@@ -57,7 +62,6 @@ describe('Módulo Producto', () => {
     })
   })
 
-  // ...existing code...
   test('PUT /api/productos/:id debe actualizar un producto exitosamente', async () => {
     const res1 = await request(app)
       .post('/api/productos')
@@ -76,13 +80,13 @@ describe('Módulo Producto', () => {
   test('PUT /api/productos/:id con nombre duplicado debe devolver 409', async () => {
     const res1 = await request(app)
       .post('/api/productos')
-      .send({ nombre: 'Original', unidad: 'kg', precio_costo: 1, precio_franquicia: 2 })
+      .send({ nombre: 'Original', precio_costo: 1, precio_franquicia: 2 })
     const res2 = await request(app)
       .post('/api/productos')
-      .send({ nombre: 'Otro', unidad: 'kg', precio_costo: 2, precio_franquicia: 3 })
+      .send({ nombre: 'Otro', precio_costo: 2, precio_franquicia: 3 })
     const res = await request(app)
       .put(`/api/productos/${res2.body.producto.id}`)
-      .send({ nombre: 'Original' })
+      .send({ nombre: 'Original', precio_costo: 2, precio_franquicia: 3 })
     expect(res.status).toBe(409)
     expect(res.body).toEqual({
       error: true,

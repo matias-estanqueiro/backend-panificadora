@@ -5,7 +5,7 @@ class Usuario {
     this.id = id
     this.nombre = nombre
     this.email = email // obligatorio, único, normalizado
-    this.rol = rol // ADMINISTRADOR | ENCARGADO_SUCURSAL | FRANQUICIADO
+    this.rol = rol // ADMIN_PLANTA | ENCARGADO_SUCURSAL | FRANQUICIADO
     this.unidad_negocio_id = unidad_negocio_id
     this.activo = activo
   }

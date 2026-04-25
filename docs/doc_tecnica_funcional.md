@@ -98,9 +98,9 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 
 #### 4.1.2 Usuario
 * `id` (String/UUID)
-* `nombre` (String)
-* `email` (String, obligatorio, único, normalizado): Correo electrónico del usuario. Debe ser único entre usuarios activos. Se almacena en minúsculas y sin espacios.
-* `unidad_negocio_id` (String/UUID): Referencia cruzada.
+* `nombre` (String): Obligatorio. Min: 3, Max: 50. Solo letras y espacios. Regex: `^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$`
+* `email` (String, obligatorio, único, normalizado): Correo electrónico del usuario. Debe ser único entre usuarios activos. Se almacena en minúsculas y sin espacios. Validado primero por formato (Zod) y luego por unicidad (negocio, error 409).
+* `unidad_negocio_id` (String/UUID): Referencia cruzada. Debe existir y estar activa.
 * `rol` (Enum): `['ADMIN_PLANTA', 'ENCARGADO_SUCURSAL', 'FRANQUICIADO']`.
 * `activo` (Boolean)
 
@@ -137,7 +137,7 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 
 ### Sobre la propiedad `email` en Usuario
 
-El campo `email` es obligatorio y único para cada usuario activo. Antes de guardar, el email se normaliza (minúsculas, sin espacios). El sistema valida que no exista otro usuario activo con el mismo email; en caso de conflicto, retorna un error 409 con el formato estándar.
+El campo `email` es obligatorio y único para cada usuario activo. Antes de guardar, el email se normaliza (minúsculas, sin espacios). El sistema valida primero el formato con Zod (400 si es inválido) y luego que no exista otro usuario activo con el mismo email (409 si hay duplicado, formato de error estándar).
 
 ### Sobre la propiedad `codigo` en entidades críticas
 
@@ -242,7 +242,7 @@ erDiagram
 ### 5.3 Restricciones de Integridad (Validaciones CRUD)
 * **Unidad de Negocio:** No se elimina si tiene pedidos (ventas) no entregados.
 * **Producto/Insumo:** No se permite eliminación física si el `id` existe en un `DetallePedido` o `DetalleInsumo`. Se fuerza el "Bloqueo" (`activo: false`).
-* **Validación de Existencia:** Todo POST de Pedidos debe verificar que el usuario, unidad y productos/insumos existan y estén activos en el momento de la transacción.
+* **Validación de Existencia y Estructura:** Todo POST/PUT valida primero la estructura del payload con Zod. Solo si es válido, se verifica unicidad (email/código) y existencia referencial (409 o 404 según corresponda).
 
 ## 6. Máquina de Estados: Ciclo de Vida del Pedido
 
@@ -259,8 +259,10 @@ Dada la naturaleza interna de esta operación, cuenta con una máquina de estado
 
 ## 7. Reglas de Negocio, Validaciones y Manejo de Errores
 
-### 7.1 Validaciones de Integridad Referencial (Códigos HTTP 400 y 404)
-El sistema rechaza transacciones con datos huérfanos. Ej: Crear un pedido con un `producto_id` o `insumo_id` inexistente aborta la operación con `409 Conflict` (o `404 Not Found`).
+### 7.1 Validaciones de Integridad y Estructura (Códigos HTTP 400, 404, 409)
+* **Validación estructural:** Todos los controladores ejecutan primero la validación de Zod sobre el payload. Si falla, devuelven 400 con detalles.
+* **Validación de unicidad:** Si el payload es válido, se valida unicidad de email/código (409 si hay duplicado).
+* **Validación referencial:** Se valida existencia de entidades relacionadas (404 si no existen, 409 si hay conflicto de negocio).
 
 ### 7.2 Congelamiento de Valor y Precios
 Al crear un pedido, es responsabilidad del backend asignar el precio correcto (Costo o Franquicia) según el tipo de Unidad de Negocio, congelando el `precio_unitario` en la tabla `DetallePedido`.
@@ -271,9 +273,9 @@ Baja Lógica (`Soft Delete`). Solo se permiten cancelaciones en estado `PENDIENT
 ### 7.4 Formato Estándar de Respuesta de Errores
 ```json
 {
-  "error": true,
-  "codigo_http": 409,
-  "mensaje": "El pedido ya se encuentra en producción y no puede ser cancelado."
+    "error": true,
+    "codigo_http": 409,
+    "mensaje": "El pedido ya se encuentra en producción y no puede ser cancelado."
 }
 ```
 
@@ -330,3 +332,4 @@ Filtra los pedidos `ENTREGADO` de una Franquicia específica, totaliza el campo 
 * **Formato:** JSON.
 * **Patrón:** Separación en Capas (`routes/`, `controllers/`, `services/`, `models/`).
 * **Persistencia:** Arrays en memoria (Fase 1) preparados para migración a ODM Mongoose/MongoDB (Fase 2).
+* **Testing y Helper de Datos:** El helper `tests/helpers/limpiarData.js` garantiza que la carpeta `/data` se borre y recree vacía antes de cada suite de tests, asegurando aislamiento y repetibilidad. Los tests de integración validan tanto errores de estructura (400) como de negocio (409, 404, etc).

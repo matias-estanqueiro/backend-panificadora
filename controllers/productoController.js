@@ -79,17 +79,7 @@ const addProducto = async (req, res) => {
 
 const updateProducto = async (req, res) => {
   try {
-    const validacion = productoSchema.safeParse(req.body)
-    if (!validacion.success) {
-      return res.status(400).json({
-        error: true,
-        codigo_http: 400,
-        mensaje: 'Errores de validación',
-        detalles: validacion.error.issues
-      })
-    }
     const id = req.params.id
-    const { nombre, precio_costo, precio_franquicia, activo } = validacion.data
     const productos = await readData('productos')
     const index = productos.findIndex(e => e.id === id)
     if (index === -1) {
@@ -99,6 +89,16 @@ const updateProducto = async (req, res) => {
         mensaje: `Producto not found with ID ${id}`
       })
     }
+    const validacion = productoSchema.safeParse(req.body)
+    if (!validacion.success) {
+      return res.status(400).json({
+        error: true,
+        codigo_http: 400,
+        mensaje: 'Errores de validación',
+        detalles: validacion.error.issues
+      })
+    }
+    const { nombre, precio_costo, precio_franquicia, activo } = validacion.data
     // Si cambia el nombre, regenerar el código y validar duplicado
     if (nombre !== undefined) {
       const nuevoCodigo = generarCodigo(nombre)

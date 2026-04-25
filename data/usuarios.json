@@ -1,18 +1,26 @@
 [
     {
-        "id": "768fee5f-5dad-4fcf-b7f8-ba2fe27afa44",
+        "id": "25a07088-e9f4-4862-8552-4bc5327a4a45",
         "nombre": "Juan Pérez",
         "email": "juan@email.com",
         "rol": "FRANQUICIADO",
-        "unidad_negocio_id": "f93190db-753d-4900-94d4-e9b3b2df9d21",
+        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
         "activo": true
     },
     {
-        "id": "0a246f3e-cf61-4fc3-978a-a1740ff4f429",
+        "id": "479633b5-4d89-49c0-ab5f-d539edef973f",
+        "nombre": "UsuarioUno",
+        "email": "duplicado@email.com",
+        "rol": "FRANQUICIADO",
+        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
+        "activo": true
+    },
+    {
+        "id": "a967ca77-f12b-43ee-a828-00345aadd558",
         "nombre": "TestUsuario",
         "email": "baja@email.com",
         "rol": "ENCARGADO_SUCURSAL",
-        "unidad_negocio_id": "f93190db-753d-4900-94d4-e9b3b2df9d21",
+        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
         "activo": false
     }
 ]

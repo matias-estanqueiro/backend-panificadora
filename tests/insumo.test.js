@@ -1,5 +1,10 @@
 import request from 'supertest'
 import app from '../app.js'
+import { limpiarData } from './helpers/limpiarData.js'
+
+beforeAll(() => {
+  limpiarData()
+})
 
 // Utilidad para crear un insumo antes de testear DELETE
 const crearInsumo = async () => {
@@ -81,21 +86,21 @@ describe('Módulo Insumo', () => {
     expect(res.body.insumo).toBeDefined()
     expect(res.body.insumo.nombre).toBe('Insumo Actualizado')
     expect(res.body.insumo.codigo).toBe('INSUMO-ACTUALIZADO')
-    expect(res.body.insumo.cantidad).toBe(99)
+    expect(res.body.insumo.stock_actual).toBe(99)
   })
 
   test('PUT /api/insumos/:id con nombre duplicado debe devolver 409', async () => {
-    // Crear dos insumos
+    // Crear dos insumos con los campos correctos
     const res1 = await request(app)
       .post('/api/insumos')
-      .send({ nombre: 'Original', unidad: 'kg', cantidad: 1 })
+      .send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
     const res2 = await request(app)
       .post('/api/insumos')
-      .send({ nombre: 'Otro', unidad: 'kg', cantidad: 2 })
+      .send({ nombre: 'Otro', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
     // Intentar actualizar el segundo con el nombre del primero
     const res = await request(app)
       .put(`/api/insumos/${res2.body.insumo.id}`)
-      .send({ nombre: 'Original' })
+      .send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
     expect(res.status).toBe(409)
     expect(res.body).toEqual({
       error: true,

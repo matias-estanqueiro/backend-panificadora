@@ -1,6 +1,10 @@
 import request from 'supertest'
 import app from '../app.js'
+import { limpiarData } from './helpers/limpiarData.js'
 
+beforeAll(() => {
+  limpiarData()
+})
 
 let unidadNegocioIdValida;
 
@@ -59,10 +63,12 @@ describe('Módulo Usuario', () => {
   test('POST /api/usuarios con email duplicado debe devolver 409', async () => {
     await request(app)
       .post('/api/usuarios')
-      .send({ nombre: 'Usuario1', email: 'duplicado@email.com', rol: 'FRANQUICIADO', unidad_negocio_id: unidadNegocioIdValida })
+      .send({ nombre: 'UsuarioUno', email: 'duplicado@email.com', rol: 'FRANQUICIADO', unidad_negocio_id: unidadNegocioIdValida })
+    // Payload estructuralmente perfecto para Zod
     const res = await request(app)
       .post('/api/usuarios')
-      .send({ nombre: 'Usuario2', email: 'duplicado@email.com', rol: 'ADMINISTRADOR', unidad_negocio_id: unidadNegocioIdValida })
+      .send({ nombre: 'UsuarioDos', email: 'duplicado@email.com', rol: 'ADMIN_PLANTA', unidad_negocio_id: unidadNegocioIdValida })
+    console.log('DETALLES ZOD:', res.body.detalles)
     expect(res.status).toBe(409)
     expect(res.body).toEqual({
       error: true,

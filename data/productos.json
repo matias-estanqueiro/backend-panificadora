@@ -1,6 +1,6 @@
 [
     {
-        "id": "1f0eb863-930d-4d43-91e0-b8c7c569ba4d",
+        "id": "ef8fd6c5-8a4b-4102-9de3-57081ab03a7c",
         "nombre": "Pan de Molde",
         "codigo": "PAN-DE-MOLDE",
         "precio_costo": 20,
@@ -8,7 +8,7 @@
         "activo": true
     },
     {
-        "id": "0f6f6109-5356-4f33-b3bb-6af7c93df0f3",
+        "id": "c4cc2fed-e3d0-4537-beae-dc7b4f30e19a",
         "nombre": "Duplicado",
         "codigo": "DUPLICADO",
         "precio_costo": 1,
@@ -16,7 +16,7 @@
         "activo": true
     },
     {
-        "id": "0dcbab03-07ab-4f3e-a5f0-a6a5b35dda77",
+        "id": "2ce66750-b4e6-4075-af06-95667d18e41c",
         "nombre": "Producto Actualizado",
         "codigo": "PRODUCTO-ACTUALIZADO",
         "precio_costo": 99,
@@ -24,7 +24,7 @@
         "activo": true
     },
     {
-        "id": "67232b92-7e7b-4583-9fd8-bf26255911b2",
+        "id": "e23ab090-500c-46e8-ac77-8f2258fddd31",
         "nombre": "Original",
         "codigo": "ORIGINAL",
         "precio_costo": 1,
@@ -32,7 +32,7 @@
         "activo": true
     },
     {
-        "id": "b4f5c0d7-8410-431c-aa4a-5843d09c932d",
+        "id": "0a34049e-a0d7-4f53-a436-0627151d312e",
         "nombre": "Otro",
         "codigo": "OTRO",
         "precio_costo": 2,
