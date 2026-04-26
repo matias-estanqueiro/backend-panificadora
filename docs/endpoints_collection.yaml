@@ -20,7 +20,7 @@ collection:
         meta:
           id: req_27e86961727c4ce8be7d9244279ba332
           created: 1777032831037
-          modified: 1777033504484
+          modified: 1777056652077
           isPrivate: false
           description: ""
           sortKey: -1777033006679
@@ -30,7 +30,7 @@ collection:
           text: |-
             {
               "nombre": "Harina 0000",
-              "unidad": "KG",
+              "unidad_medida": "KG",
             	"cantidad" : 100
             }
         headers:
@@ -152,8 +152,8 @@ collection:
     meta:
       id: fld_eaf9c259263b44a39bed9bc0e9eec0a7
       created: 1777034581748
-      modified: 1777034581748
-      sortKey: -1777034581748
+      modified: 1777233392517
+      sortKey: -1777038138971.75
       description: ""
     children:
       - url: http://localhost:3000/api/productos
@@ -161,7 +161,7 @@ collection:
         meta:
           id: req_ac822209014a4b938d47d936d75aaaea
           created: 1777039469933
-          modified: 1777039733747
+          modified: 1777233983805
           isPrivate: false
           description: ""
           sortKey: -1777039730757
@@ -207,7 +207,7 @@ collection:
         meta:
           id: req_08494c2b961e421293f9a0a276db82cd
           created: 1777039775360
-          modified: 1777039962692
+          modified: 1777237642832
           isPrivate: false
           description: ""
           sortKey: -1777039730557
@@ -216,10 +216,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	  "nombre" : "Torta Invertida", 
-                "unidad" : "1",
-                "precio_costo" : 150, 
-                "precio_franquicia" : 300
+              "nombre": "Pan Francés x KG",
+              "precio_costo": 800,
+              "precio_franquicia": 1000
             }
         headers:
           - name: Content-Type
@@ -303,7 +302,7 @@ collection:
         meta:
           id: req_c4ebf82be2984272a09a5e3b840b0ed9
           created: 1777034660636
-          modified: 1777040761226
+          modified: 1777233885769
           isPrivate: false
           description: ""
           sortKey: -1777039427912
@@ -349,7 +348,7 @@ collection:
         meta:
           id: req_3bcbf9f8d7754700aa8b2f05cfb67dda
           created: 1777039442188
-          modified: 1777039568673
+          modified: 1777237610089
           isPrivate: false
           description: ""
           sortKey: -1777039427712
@@ -358,9 +357,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"nombre": "Agregado por Insomnia",
-            	"rol": "ADMIN_PLANTA",
-            	"unidad_negocio_id": "PLANTA"
+              "nombre": "Pedro Moreno",
+              "email": "p.moreno@espigadeoro.com",
+              "rol": "ENCARGADO_SUCURSAL",
+              "unidad_negocio_id": "78654d49-1ae4-4738-bf3c-c2839d8f1aa2"
             }
         headers:
           - name: Content-Type
@@ -444,7 +444,7 @@ collection:
         meta:
           id: req_3ac518a6143247b98f0106fec707bd42
           created: 1777040014630
-          modified: 1777040540739
+          modified: 1777234149100
           isPrivate: false
           description: ""
           sortKey: -1777040403066
@@ -462,12 +462,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/unidadesNegocio/63f8e7a8-7efa-4c76-8e2e-0e5ce1cce431
+      - url: http://localhost:3000/api/unidadesNegocio/be55abe8-9c6b-46f8-b9c8-2953835fc864
         name: GET UnidadNegocio (by ID)
         meta:
           id: req_140e52ace7024e5bb6ec1abac053e52a
           created: 1777040042826
-          modified: 1777040659050
+          modified: 1777233026002
           isPrivate: false
           description: ""
           sortKey: -1777040402966
@@ -490,7 +490,7 @@ collection:
         meta:
           id: req_0c8f4ebd8491472d80595887da0824b8
           created: 1777040079027
-          modified: 1777040407540
+          modified: 1777233338210
           isPrivate: false
           description: ""
           sortKey: -1777040402866
@@ -499,8 +499,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"nombre" : "Espiga de Oro",
-            	"tipo" : "PLANTA"
+              "nombre": "Sucursal Flores",
+              "tipo": "SUCURSAL_PROPIA",
+              "direccion": "Av. Rivadavia 7000"
             }
         headers:
           - name: Content-Type
@@ -556,6 +557,223 @@ collection:
             {
             	"nombre" : "Editando el nombre",
             	"tipo" : "FRANQUICIA"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Pedidos
+    meta:
+      id: fld_b50b3bdfad0b43769d8a1c0509102fdd
+      created: 1777232142698
+      modified: 1777233390300
+      sortKey: -1777036953230.5
+      description: ""
+    children:
+      - url: http://localhost:3000/api/pedidos/
+        name: ADD Pedido
+        meta:
+          id: req_edac935a96874837a0019b39c8767b30
+          created: 1777232149123
+          modified: 1777237709191
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390915.5
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "unidad_negocio_id": "78654d49-1ae4-4738-bf3c-c2839d8f1aa2",
+              "usuario_id": "42d31e2d-aa08-4cc3-901b-37c4b8cd27da",
+              "detalles": [
+                {
+                  "producto_id": "145e0a49-4668-4311-aea3-054acb49d013",
+                  "cantidad": 10
+                }
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos/
+        name: GET Pedidos
+        meta:
+          id: req_f952abc7340e440ab680aebae47ad57f
+          created: 1777232407146
+          modified: 1777233857385
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390978
+        method: GET
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "unidad_negocio_id": "be55abe8-9c6b-46f8-b9c8-2953835fc866",
+              "usuario_id": "356ae3e4-0158-42a7-b01e-aa1865faf76e",
+              "detalles": [
+                {
+                  "producto_id": "3f6532ea-70ca-43f4-9268-f2663815372a",
+                  "cantidad": 10
+                }
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos/429a831d-a409-4110-bb8b-426c31b95db4
+        name: GET Pedido (by ID)
+        meta:
+          id: req_a01f253626814c9689711730fc0578bf
+          created: 1777232512514
+          modified: 1777232534446
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390928
+        method: GET
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "unidad_negocio_id": "be55abe8-9c6b-46f8-b9c8-2953835fc866",
+              "usuario_id": "356ae3e4-0158-42a7-b01e-aa1865faf76e",
+              "detalles": [
+                {
+                  "producto_id": "3f6532ea-70ca-43f4-9268-f2663815372a",
+                  "cantidad": 10
+                }
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos/35d3148b-7418-4544-bfcd-261d9066ad45
+        name: UPDATE Pedido Detalles (by ID)
+        meta:
+          id: req_6f3060c3eb524f058a54a48db4f8bf17
+          created: 1777232552156
+          modified: 1777238681988
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390903
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "detalles": [
+                {
+                  "producto_id": "145e0a49-4668-4311-aea3-054acb49d013",
+                  "cantidad": 5
+                },
+            		{
+            			"producto_id" : "e1cf0b50-b6c0-407e-84d1-a5d6b430156c",
+            			"cantidad" : 10
+            		}
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos/35d3148b-7418-4544-bfcd-261d9066ad45
+        name: DELETE Pedido (by ID)
+        meta:
+          id: req_c7e4f53357964cf3bae15ed8f223f596
+          created: 1777232627865
+          modified: 1777237941562
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390890.5
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos/c161e3ca-2f32-411d-b097-c5f17a439115/estado
+        name: UPDATE Pedido Estado (by ID)
+        meta:
+          id: req_a2b68e9efc3544cb9f5a82f34c80b8c6
+          created: 1777238690964
+          modified: 1777238851369
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390896.75
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "usuario_id": "ee05ac35-9259-4f93-b641-476cf99de14e",
+              "estado": "EN_PRODUCCION"
             }
         headers:
           - name: Content-Type

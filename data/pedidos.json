@@ -1,0 +1,19 @@
+[
+    {
+        "id": "c161e3ca-2f32-411d-b097-c5f17a439115",
+        "unidad_negocio_id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
+        "usuario_id": "42fc6cbf-60b3-4f6d-a19c-fed50272ee6b",
+        "detalles": [
+            {
+                "id": "f69fd52d-43f2-4813-99c7-d119767e52f4",
+                "pedido_id": "c161e3ca-2f32-411d-b097-c5f17a439115",
+                "producto_id": "8952d0a2-04d4-4827-b26a-8d05a595d6fe",
+                "cantidad": 1,
+                "precio_unitario": 10,
+                "subtotal": 10
+            }
+        ],
+        "estado": "EN_PRODUCCION",
+        "fecha": "2026-04-26T21:24:15.408Z"
+    }
+]

@@ -1,58 +1,14 @@
 [
     {
-        "id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
-        "nombre": "Unidad Negocio Test",
-        "codigo": "UNIDAD-NEGOCIO-TEST",
+        "id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
+        "nombre": "Sucursal 1",
         "tipo": "SUCURSAL_PROPIA",
-        "direccion": "Calle Test 123",
         "activo": true
     },
     {
-        "id": "518d5560-435c-4c6e-8339-9b6e143f4d3e",
-        "nombre": "Sucursal Centro",
-        "codigo": "SUCURSAL-CENTRO",
-        "tipo": "SUCURSAL_PROPIA",
-        "direccion": "Av. Principal 456",
+        "id": "5240ef65-c4c2-4e9a-b03f-b8fbaffe4ed3",
+        "nombre": "Franquicia 1",
+        "tipo": "FRANQUICIA",
         "activo": true
-    },
-    {
-        "id": "a25fa573-9085-4271-9b18-e48ba83e7d82",
-        "nombre": "Duplicado",
-        "codigo": "DUPLICADO",
-        "tipo": "PLANTA_CENTRAL",
-        "direccion": "Calle 1",
-        "activo": true
-    },
-    {
-        "id": "cccc98c6-3754-4c72-bdef-4f88898da979",
-        "nombre": "Unidad Actualizada",
-        "codigo": "UNIDAD-ACTUALIZADA",
-        "tipo": "PLANTA_CENTRAL",
-        "direccion": "Calle 2",
-        "activo": true
-    },
-    {
-        "id": "492deacf-c7cb-48d2-8b7b-68bb9a0e2219",
-        "nombre": "Original",
-        "codigo": "ORIGINAL",
-        "tipo": "SUCURSAL_PROPIA",
-        "direccion": "Calle 1",
-        "activo": true
-    },
-    {
-        "id": "423943da-8d6e-43d7-80af-a853063017d7",
-        "nombre": "Otro",
-        "codigo": "OTRO",
-        "tipo": "PLANTA_CENTRAL",
-        "direccion": "Calle 2",
-        "activo": true
-    },
-    {
-        "id": "fc78c602-9123-473f-9def-8449f8241372",
-        "nombre": "TestUnidad",
-        "codigo": "TESTUNIDAD",
-        "tipo": "SUCURSAL_PROPIA",
-        "direccion": "Calle 123",
-        "activo": false
     }
 ]

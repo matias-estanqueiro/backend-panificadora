@@ -1,9 +1,10 @@
+
 import request from 'supertest'
 import app from '../app.js'
 import { limpiarData } from './helpers/limpiarData.js'
 
-beforeAll(() => {
-  limpiarData()
+beforeAll(async () => {
+  await limpiarData();
 })
 
 // Utilidad para crear un insumo antes de testear DELETE

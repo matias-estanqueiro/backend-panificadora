@@ -80,13 +80,45 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 * **unidad_negocio_id** (String/UUID): Obligatorio. Debe coincidir con el ID de una Unidad de Negocio existente (Validación referencial).
 * **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
 
+### 4.5 Pedido (Venta)
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **unidad_negocio_id** (String/UUID): Obligatorio. Referencia a la Unidad de Negocio que solicita.
+* **usuario_id** (String/UUID): Obligatorio. Referencia al Usuario que registra la operación.
+* **estado** (String): Obligatorio. Valores estrictos (Enum): `["PENDIENTE", "EN_PRODUCCION", "DESPACHADO", "ENTREGADO", "CANCELADO"]`. Valor por defecto al crear: `PENDIENTE`.
+* **fecha** (String/ISO 8601 Date): Generada automáticamente al momento de la creación.
+
+### 4.6 DetallePedido
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **pedido_id** (String/UUID): Obligatorio. Referencia al Pedido cabecera.
+* **producto_id** (String/UUID): Obligatorio. Referencia al Producto solicitado.
+* **cantidad** (Number): Obligatorio. Número entero estrictamente mayor a 0.
+* **precio_unitario** (Number): Generado por el backend al momento de crear el pedido (se "congela" el precio vigente según el tipo de unidad de negocio). Mayor o igual a 0.
+* **subtotal** (Number): Generado por el backend (`cantidad * precio_unitario`). Mayor o igual a 0.
+
 ## 5. Flujos Operativos y Máquinas de Estado
 
-### 5.1 Ciclo de Vida del Pedido de Venta
-1.  **PENDIENTE:** Creado por Sucursal/Franquicia. Único estado donde se permite modificar o cancelar el pedido.
-2.  **EN_PRODUCCION:** La Planta comenzó a preparar el pedido. (Congelado para el solicitante).
-3.  **DESPACHADO:** Los productos salieron de la Planta.
-4.  **ENTREGADO:** Recepción confirmada. El pedido se cierra y se vuelve elegible para el cálculo de royalties.
+### Persistencia y Validación
+- **Persistencia asíncrona:** Todas las operaciones CRUD utilizan métodos asíncronos centralizados (`readData`, `writeData` en `lib/fs.js`). No se utiliza `fs` nativo en controladores ni tests.
+- **Validación estructural:** Todos los endpoints validan primero la estructura y tipos de datos usando Zod. Solo si el payload es válido, se ejecutan validaciones de unicidad y referenciales.
+- **Formato de error estándar:** Todas las respuestas de error siguen `{ error: true, codigo_http, mensaje }`.
+
+### 5.1 Ciclo de Vida del Pedido de Venta (Máquina de Estados)
+1. **PENDIENTE**: Solicitud emitida. Único estado abierto a modificaciones o cancelaciones.
+2. **EN_PRODUCCION**: Pedido validado. Congelado para modificaciones.
+3. **DESPACHADO**: Salida física de la Planta.
+4. **ENTREGADO**: Recepción confirmada. Elegible para reporte de royalties.
+5. **CANCELADO**: Pedido anulado (Soft Delete). Solo se puede pasar a este estado si el pedido estaba en PENDIENTE.
+
+**Transiciones y RBAC:**
+- El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos/:id/estado`.
+- Solo usuarios con rol `ADMIN_PLANTA` pueden ejecutar cambios de estado (RBAC estricto).
+- El endpoint valida la transición permitida según la máquina de estados y aborta con error si la transición es inválida.
+
+**PUT y Reemplazo Total:**
+- El endpoint `PUT /api/pedidos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
+
+**Soft Delete:**
+- Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
 
 ### 5.2 Flujo de Abastecimiento (Insumos)
 1.  **PENDIENTE:** Orden de compra emitida por la Planta.

@@ -117,6 +117,7 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 * `unidad_negocio_id` (String/UUID): Sucursal/Franquicia solicitante.
 * `usuario_id` (String/UUID): Operador que registró el pedido.
 * `estado` (Enum): `['PENDIENTE', 'EN_PRODUCCION', 'DESPACHADO', 'ENTREGADO']`.
+* `fecha` (date): fecha de creación del pedido
 
 #### 4.1.5 DetallePedido
 * `id` (String/UUID)
@@ -239,20 +240,35 @@ erDiagram
 7. **PedidoInsumo -> DetalleInsumo (1:N):** Composición fuerte del abastecimiento.
 8. **Insumo -> DetalleInsumo (1:N):** Relación de catálogo de compras.
 
-### 5.3 Restricciones de Integridad (Validaciones CRUD)
-* **Unidad de Negocio:** No se elimina si tiene pedidos (ventas) no entregados.
-* **Producto/Insumo:** No se permite eliminación física si el `id` existe en un `DetallePedido` o `DetalleInsumo`. Se fuerza el "Bloqueo" (`activo: false`).
-* **Validación de Existencia y Estructura:** Todo POST/PUT valida primero la estructura del payload con Zod. Solo si es válido, se verifica unicidad (email/código) y existencia referencial (409 o 404 según corresponda).
+### 5.3 Restricciones de Integridad (Validaciones CRUD y Persistencia)
+- **Persistencia asíncrona:** Todas las operaciones CRUD utilizan métodos asíncronos centralizados (`readData`, `writeData` en `lib/fs.js`). No se utiliza `fs` nativo en controladores ni tests.
+- **Validación estructural:** Todos los endpoints validan primero la estructura y tipos de datos usando Zod. Solo si el payload es válido, se ejecutan validaciones de unicidad y referenciales.
+- **Formato de error estándar:** Todas las respuestas de error siguen `{ error: true, codigo_http, mensaje }`.
+- **Unidad de Negocio:** No se elimina si tiene pedidos (ventas) no entregados.
+- **Producto/Insumo:** No se permite eliminación física si el `id` existe en un `DetallePedido` o `DetalleInsumo`. Se fuerza el "Bloqueo" (`activo: false`).
+- **Validación de Existencia y Estructura:** Todo POST/PUT valida primero la estructura del payload con Zod. Solo si es válido, se verifica unicidad (email/código) y existencia referencial (409 o 404 según corresponda).
 
-## 6. Máquina de Estados: Ciclo de Vida del Pedido
+### 6. Máquina de Estados y RBAC
 
-### 6.1 Flujo de Pedidos de Venta (Sucursales/Franquicias)
+#### 6.1 Flujo de Pedidos de Venta (Máquina de Estados)
 1. **PENDIENTE**: Solicitud emitida. Abierta a modificaciones.
-2. **EN_PRODUCCION**: Pedido validado. Congelado para modificaciones por el creador.
+2. **EN_PRODUCCION**: Pedido validado. Congelado para modificaciones.
 3. **DESPACHADO**: Salida física de la Planta.
 4. **ENTREGADO**: Recepción confirmada. Elegible para reporte de royalties.
+5. **CANCELADO**: Pedido anulado (Soft Delete). Solo se puede pasar a este estado si el pedido estaba en PENDIENTE.
 
-### 6.2 Flujo de Pedidos de Insumos (Abastecimiento Interno)
+**Transiciones y RBAC:**
+- El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos/:id/estado`.
+- Solo usuarios con rol `ADMIN_PLANTA` pueden ejecutar cambios de estado (RBAC estricto).
+- El endpoint valida la transición permitida según la máquina de estados y aborta con error si la transición es inválida.
+
+**PUT y Reemplazo Total:**
+- El endpoint `PUT /api/pedidos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
+
+**Soft Delete:**
+- Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
+
+#### 6.2 Flujo de Pedidos de Insumos (Abastecimiento Interno)
 Dada la naturaleza interna de esta operación, cuenta con una máquina de estados simplificada:
 1. **PENDIENTE**: Orden de compra emitida al proveedor.
 2. **RECIBIDO**: El insumo ingresa a la Planta. En este punto el sistema debe actualizar el `stock_actual` de cada insumo.
@@ -288,7 +304,8 @@ Baja Lógica (`Soft Delete`). Solo se permiten cancelaciones en estado `PENDIENT
 ### 8.2 Módulo: Gestión de Pedidos de Venta (`/api/pedidos`)
 * **C:** Crea cabecera y múltiples `DetallePedido`. Congela el precio.
 * **R:** Historial filtrado según RBAC con Join lógico.
-* **U / D:** Actualización y Baja restringidas al estado `PENDIENTE`.
+* **U:** Actualización restringida al estado `PENDIENTE`. Utiliza el patrón de **Reemplazo Total**: el payload enviado en el array `detalles` sobrescribe por completo los detalles anteriores del pedido. Recalcula automáticamente los precios congelados y subtotales en base al catálogo actual.
+* **D:** Baja lógica pasando el estado a `CANCELADO`. Solo permitido si el estado actual es `PENDIENTE`.
 
 ### 8.3 Módulo: Unidades de Negocio y Actores (`/api/unidades`, `/api/usuarios`)
 Gestión de locaciones y control de acceso RBAC. 

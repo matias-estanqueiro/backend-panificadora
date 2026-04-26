@@ -1,63 +1,110 @@
-# API RESTful - Sistema de Gestión de Pedidos "La Espiga de Oro S.R.L."
-## Descripción del Proyecto
-Backend transaccional diseñado para estructurar y centralizar la cadena de suministro interno de una panificadora con estructura matricial (Planta Central, Sucursales Propias y Franquicias). 
-El sistema expone un motor de operaciones CRUD interrelacionadas diseñado para erradicar la asimetría de información en la captura de pedidos, garantizando la integridad referencial y bloqueando transacciones inconsistentes. 
+
+# La Espiga de Oro S.R.L. – Backend de Gestión de Pedidos
+
+## Descripción
+Backend transaccional para la gestión integral de pedidos en una panificadora industrial con estructura matricial (Planta Central, Sucursales Propias y Franquicias). El sistema centraliza la cadena de suministro, garantiza la integridad referencial y bloquea transacciones inconsistentes mediante una arquitectura robusta y validaciones estrictas.
 
 ---
 
-
-**Características Técnicas Principales:**
-* **Arquitectura Modular por Capas:** Separación estricta de responsabilidades (Rutas, Controladores, Modelos). Cada entidad implementa su propio CRUD siguiendo el patrón MVC.
-* **Validaciones Estrictas y Unicidad:** Todas las entidades base (Usuario, Producto, Insumo, UnidadNegocio) validan sus propiedades según el diccionario de datos funcional y técnico. El email de usuario es único y normalizado, validado tras pasar la validación de estructura (Zod).
-* **Flujo de Validación Estandarizado:** Todos los controladores ejecutan primero la validación de Zod (`usuarioSchema.safeParse` y equivalentes). Solo si el payload es válido, se ejecutan validaciones de negocio como unicidad de email o código.
-* **Máquina de Estados Finita:** Control auditado del ciclo de vida de los pedidos (`PENDIENTE` -> `EN_PRODUCCION` -> `DESPACHADO` -> `ENTREGADO`), con bloqueos transaccionales duros contra modificaciones en etapas avanzadas.
-* **Gestión de Dependencias (Soft Deletes):** Prevención de eliminación física de registros maestros (Unidades de Negocio, Productos, Insumos, Usuarios) mediante baja lógica (`activo: false`).
-* **Agregación de Datos:** Endpoints estratégicos para el cálculo de demanda consolidada (producción) y base imponible (royalties).
-* **Programación Defensiva y DRY:** Utilidades centralizadas para manejo seguro de archivos y carpetas (`lib/fs.js`).
-* **Helper de Limpieza de Datos para Testing:** El helper `tests/helpers/limpiarData.js` garantiza que la carpeta `/data` se borre y recree vacía antes de cada suite de tests, asegurando aislamiento y repetibilidad.
-* **Validación y Manejo de Errores Estandarizado:** Todos los controladores devuelven errores en formato JSON estricto `{ error: true, codigo_http, mensaje }`.
-* **Cobertura de Pruebas Automatizadas:** Pruebas de integración para todos los módulos CRUD usando Jest y Supertest. Los tests validan tanto errores de estructura (400) como de negocio (409 unicidad, 404 inexistencia, etc).
-* **Scripts de desarrollo y testing:** Scripts en `package.json` para desarrollo (`dev`), ejecución (`start`) y testing (`test`).
+## Tecnologías y Herramientas
+- **Node.js** (runtime)
+- **Express.js** (framework web)
+- **Zod** (validación de esquemas y tipos)
+- **UUID** (identificadores únicos universales)
+- **Jest** (testing de integración y unidad)
+- **Supertest** (testing HTTP end-to-end)
+- **Nodemon** (hot reload en desarrollo)
 
 ---
 
-**Stack Tecnológico:**
-* Entorno: Node.js
-* Framework: Express.js
-* Motor de vistas: Pug (para futuras vistas administrativas)
-* Testing: Jest (unitario e integración), Supertest (HTTP)
-* Hot reload: Nodemon
-* Persistencia: Archivos JSON nativos (almacenamiento en memoria, preparado para NoSQL)
-* UUID: Identificadores únicos universales para entidades
+## Estructura de Carpetas
 
-**Scripts útiles (`package.json`):**
-* `start`: Ejecuta el servidor principal (`node app.js`)
-* `dev`: Ejecuta el servidor en modo desarrollo con recarga automática (`nodemon app.js`)
-* `test`: Ejecuta la suite de tests con Jest y Supertest
-
-- Insumo (materia prima)
-- Producto (panificados terminados)
-- UnidadNegocio (Planta, Sucursal, Franquicia)
-- Usuario (operadores del sistema)
+```
+├── app.js
+├── package.json
+├── package-lock.json
+├── controllers/
+│   ├── insumoController.js
+│   ├── pedidoController.js
+│   ├── productoController.js
+│   ├── unidadNegocioController.js
+│   └── usuarioController.js
+├── data/
+│   ├── insumos.json
+│   ├── pedidos.json
+│   ├── productos.json
+│   ├── unidadesNegocio.json
+│   └── usuarios.json
+├── docs/
+│   ├── doc_tecnica_funcional.md
+│   ├── endpoints_collection.yaml
+│   └── pautas_desarrollo/
+│       ├── funcional.md
+│       ├── pautas-tecnicas-tp.md
+│       └── tecnico.md
+├── lib/
+│   ├── fs.js
+│   ├── schemas.js
+│   └── utils.js
+├── models/
+│   ├── Insumo.js
+│   ├── Pedido.js
+│   ├── Producto.js
+│   ├── UnidadNegocio.js
+│   └── Usuario.js
+├── routes/
+│   ├── insumoRoutes.js
+│   ├── pedidoRoutes.js
+│   ├── productoRoutes.js
+│   ├── unidadNegocioRoutes.js
+│   └── usuarioRoutes.js
+├── tests/
+│   ├── insumo.test.js
+│   ├── pedido.test.js
+│   ├── producto.test.js
+│   ├── unidadNegocio.test.js
+│   ├── usuario.test.js
+│   └── helpers/
+│       └── limpiarData.js
+├── node_modules/
+└── readme.MD
+```
 
 ---
 
-**Manejo Defensivo de Archivos y Carpetas (`lib/fs.js` y `tests/helpers/limpiarData.js`):**
+## Instalación y Ejecución
 
-El sistema implementa funciones auxiliares para garantizar que los archivos y carpetas de datos existan y sean válidos. El helper de limpieza de datos permite ejecutar los tests múltiples veces sin intervención manual, eliminando residuos de ejecuciones previas.
-
-Esto permite que el backend sea robusto ante borrados accidentales de archivos/carpetas y facilita la portabilidad y testabilidad del sistema.
+1. Instala las dependencias:
+	```bash
+	npm install
+	```
+2. Ejecuta el servidor en modo desarrollo:
+	```bash
+	npm run dev
+	```
+3. Corre la suite de tests:
+	```bash
+	npm test
+	```
 
 ---
 
-**Documentación (`/docs`):**
+## Características Técnicas Clave
 
-Esta carpeta contiene los documentos normativos y funcionales que rigen el desarrollo del sistema. Son la referencia obligatoria para cualquier contribución, asegurando la calidad, coherencia y alineación con los objetivos del negocio.
+- **Persistencia Asíncrona:** Toda la lectura y escritura de datos se realiza mediante los métodos asíncronos `readData` y `writeData` del wrapper `lib/fs.js`, eliminando condiciones de carrera y el uso directo de `fs` nativo en controladores y tests.
+- **Validación de Datos con Zod:** Todos los controladores validan primero la estructura y tipos de datos usando Zod antes de cualquier lógica de negocio.
+- **Máquina de Estados de Pedidos:** El ciclo de vida de un pedido sigue el flujo `PENDIENTE → EN_PRODUCCION → DESPACHADO → ENTREGADO`, con el estado terminal `CANCELADO`. El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos/:id/estado` y solo puede ser ejecutado por usuarios con rol `ADMIN_PLANTA` (RBAC estricto).
+- **Patrón de Reemplazo Total en PUT:** El endpoint `PUT /api/pedidos/:id` sobrescribe completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente.
+- **Soft Delete:** Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
+- **Testing Defensivo:** El helper `tests/helpers/limpiarData.js` y la infraestructura de tests garantizan aislamiento y repetibilidad, validando tanto errores de estructura como de negocio.
 
-**Índice de archivos:**
+---
 
-- `funcional.md`: Especificación funcional del sistema, casos de uso, actores, reglas de negocio y modelo de dominio.
-- `tecnico.md`: Pautas técnicas obligatorias, arquitectura, convenciones de código, manejo de errores y estructura de carpetas.
-- `/docs/pautas-tecnicas-tp.md`: Reglas y recomendaciones específicas para la entrega del trabajo práctico, criterios de evaluación y buenas prácticas.
+## Documentación y Normativas
+
+La carpeta `/docs` contiene la documentación funcional y técnica, incluyendo:
+- `funcional.md`: Especificación funcional, casos de uso, reglas de negocio y modelo de dominio.
+- `tecnico.md`: Pautas técnicas, arquitectura, convenciones y manejo de errores.
+- `pautas-tecnicas-tp.md`: Reglas y criterios de evaluación para la entrega.
 
 Se recomienda leer estos documentos antes de modificar o agregar cualquier funcionalidad al proyecto.

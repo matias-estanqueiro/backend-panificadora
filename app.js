@@ -1,8 +1,10 @@
 import express from 'express'
+
 import insumoRoutes from './routes/insumoRoutes.js'
 import productoRoutes from './routes/productoRoutes.js'
 import unidadNegocioRoutes from './routes/unidadNegocioRoutes.js'
 import usuarioRoutes from './routes/usuarioRoutes.js'
+import pedidoRoutes from './routes/pedidoRoutes.js';
 
 const PORT = 3000
 const app = express()
@@ -11,10 +13,12 @@ const app = express()
 app.use(express.json())
 
 // routes
+
 app.use('/api/insumos', insumoRoutes)
 app.use('/api/productos', productoRoutes)
 app.use('/api/unidadesNegocio', unidadNegocioRoutes)
 app.use('/api/usuarios', usuarioRoutes)
+app.use('/api/pedidos', pedidoRoutes);
 
 // 1. EXPORTAMOS la app para que Supertest pueda inyectar peticiones
 export default app;

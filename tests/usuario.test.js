@@ -1,9 +1,10 @@
+
 import request from 'supertest'
 import app from '../app.js'
 import { limpiarData } from './helpers/limpiarData.js'
 
-beforeAll(() => {
-  limpiarData()
+beforeAll(async () => {
+  await limpiarData();
 })
 
 let unidadNegocioIdValida;

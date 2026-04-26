@@ -1,26 +1,30 @@
 [
     {
-        "id": "25a07088-e9f4-4862-8552-4bc5327a4a45",
-        "nombre": "Juan Pérez",
-        "email": "juan@email.com",
-        "rol": "FRANQUICIADO",
-        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
+        "id": "8fa257de-7542-40a7-b95d-3899a6183419",
+        "nombre": "Juan",
+        "unidad_negocio_id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
         "activo": true
     },
     {
-        "id": "479633b5-4d89-49c0-ab5f-d539edef973f",
-        "nombre": "UsuarioUno",
-        "email": "duplicado@email.com",
-        "rol": "FRANQUICIADO",
-        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
+        "id": "d07ea54a-a7c5-449c-ba1e-dd04f4c2b25c",
+        "nombre": "Ana",
+        "unidad_negocio_id": "5240ef65-c4c2-4e9a-b03f-b8fbaffe4ed3",
         "activo": true
     },
     {
-        "id": "a967ca77-f12b-43ee-a828-00345aadd558",
-        "nombre": "TestUsuario",
-        "email": "baja@email.com",
+        "id": "42fc6cbf-60b3-4f6d-a19c-fed50272ee6b",
+        "nombre": "Admin Planta",
+        "email": "admin@planta.com",
+        "rol": "ADMIN_PLANTA",
+        "unidad_negocio_id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
+        "activo": true
+    },
+    {
+        "id": "ee05ac35-9259-4f93-b641-476cf99de14e",
+        "nombre": "Encargado",
+        "email": "encargado@sucursal.com",
         "rol": "ENCARGADO_SUCURSAL",
-        "unidad_negocio_id": "46e2c694-df94-4e9f-ba6a-9ed8047b2d79",
-        "activo": false
+        "unidad_negocio_id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
+        "activo": true
     }
 ]

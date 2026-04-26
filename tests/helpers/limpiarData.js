@@ -1,11 +1,11 @@
-import fs from 'fs'
-import path from 'path'
+import { writeData } from '../../lib/fs.js';
 
-const dataDir = path.resolve(process.cwd(), 'data')
-
-export function limpiarData() {
-  if (fs.existsSync(dataDir)) {
-    fs.rmSync(dataDir, { recursive: true, force: true })
-  }
-  fs.mkdirSync(dataDir, { recursive: true })
+export async function limpiarData() {
+  await Promise.all([
+    writeData('usuarios', []),
+    writeData('unidadesNegocio', []),
+    writeData('productos', []),
+    writeData('insumos', []),
+    writeData('pedidos', [])
+  ]);
 }

@@ -1,3 +1,19 @@
+# 4. Persistencia y Validación
+
+### Persistencia Asíncrona
+Todas las operaciones de lectura y escritura de datos se realizan mediante los métodos asíncronos `readData` y `writeData` del wrapper `lib/fs.js`. No se utiliza el módulo `fs` nativo en controladores ni tests.
+
+### Validación con Zod
+Todos los controladores validan primero la estructura y tipos de datos usando Zod. Si el payload es válido, se ejecutan validaciones de unicidad y referenciales. Los errores siguen el formato `{ error: true, codigo_http, mensaje }`.
+
+### Soft Delete
+Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
+
+### Máquina de Estados y RBAC
+El ciclo de vida de los pedidos sigue una máquina de estados estricta. El cambio de estado se realiza solo mediante `PATCH /api/pedidos/:id/estado` y solo puede ser ejecutado por usuarios con rol `ADMIN_PLANTA` (RBAC). El endpoint valida la transición y aborta con error si es inválida.
+
+### PUT como Reemplazo Total
+El endpoint `PUT /api/pedidos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
 # Documentación Técnica: Arquitectura y Restricciones del Sistema
 
 Este documento define las pautas arquitectónicas y técnicas obligatorias para el desarrollo del TP. Cualquier herramienta de generación de código (ej. Copilot) debe apegarse estrictamente a estas directrices.
@@ -32,6 +48,7 @@ Dado que persistimos en JSON plano, las relaciones relacionales (Foráneas) se m
 ### 3.3 Operaciones de Actualización (Update)
 * **Verificación de Estado:** Bloquear actualizaciones (PUT/PATCH) mediante código `409 Conflict` si la máquina de estados no lo permite (ej. intentar modificar un pedido que ya está `EN_PRODUCCION`).
 * **Validación:** Igual que en el Alta, cualquier nueva referencia agregada durante la edición debe validarse contra el archivo JSON.
+* **Patrón de Actualización de Arrays (Reemplazo Total):** Para entidades compuestas (como un `Pedido` y sus `detalles`), las peticiones `PUT` aplican un reemplazo destructivo. El backend no realiza fusiones (merge) ni deltas; el array recibido en el payload sobrescribe íntegramente al array almacenado.
 
 ### 3.4 Operaciones de Baja (Delete)
 * **Dependencias Críticas:** Implementar lógica para prevenir la eliminación de registros "padre" que tengan registros "hijo".

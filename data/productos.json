@@ -1,42 +1,16 @@
 [
     {
-        "id": "ef8fd6c5-8a4b-4102-9de3-57081ab03a7c",
-        "nombre": "Pan de Molde",
-        "codigo": "PAN-DE-MOLDE",
+        "id": "8952d0a2-04d4-4827-b26a-8d05a595d6fe",
+        "nombre": "Pan",
+        "precio_costo": 10,
+        "precio_franquicia": 15,
+        "activo": true
+    },
+    {
+        "id": "e89cbdf4-8d1d-4887-8ca6-983c934e8030",
+        "nombre": "Facturas",
         "precio_costo": 20,
-        "precio_franquicia": 30,
-        "activo": true
-    },
-    {
-        "id": "c4cc2fed-e3d0-4537-beae-dc7b4f30e19a",
-        "nombre": "Duplicado",
-        "codigo": "DUPLICADO",
-        "precio_costo": 1,
-        "precio_franquicia": 2,
-        "activo": true
-    },
-    {
-        "id": "2ce66750-b4e6-4075-af06-95667d18e41c",
-        "nombre": "Producto Actualizado",
-        "codigo": "PRODUCTO-ACTUALIZADO",
-        "precio_costo": 99,
-        "precio_franquicia": 20,
-        "activo": true
-    },
-    {
-        "id": "e23ab090-500c-46e8-ac77-8f2258fddd31",
-        "nombre": "Original",
-        "codigo": "ORIGINAL",
-        "precio_costo": 1,
-        "precio_franquicia": 2,
-        "activo": true
-    },
-    {
-        "id": "0a34049e-a0d7-4f53-a436-0627151d312e",
-        "nombre": "Otro",
-        "codigo": "OTRO",
-        "precio_costo": 2,
-        "precio_franquicia": 3,
+        "precio_franquicia": 25,
         "activo": true
     }
 ]

@@ -52,6 +52,15 @@ const addUsuario = async (req, res) => {
     const { nombre, email, rol, unidad_negocio_id } = validacion.data
     const emailNorm = email.trim().toLowerCase()
     const usuarios = await readData('usuarios')
+    const unidades = await readData('unidadesNegocio')
+    const unidad = unidades.find(u => u.id === unidad_negocio_id && u.activo !== false)
+    if (!unidad) {
+      return res.status(404).json({
+        error: true,
+        codigo_http: 404,
+        mensaje: 'La unidad de negocio asignada no existe o está inactiva.'
+      })
+    }
     const duplicateEmail = usuarios.find(e => e.email === emailNorm && e.activo !== false)
     if (duplicateEmail) {
       return res.status(409).json({
@@ -115,6 +124,15 @@ const updateUsuario = async (req, res) => {
       usuarios[index].rol = rol
     }
     if (unidad_negocio_id !== undefined) {
+      const unidades = await readData('unidadesNegocio')
+      const unidad = unidades.find(u => u.id === unidad_negocio_id && u.activo !== false)
+      if (!unidad) {
+        return res.status(404).json({
+          error: true,
+          codigo_http: 404,
+          mensaje: 'La unidad de negocio asignada no existe o está inactiva.'
+        })
+      }
       usuarios[index].unidad_negocio_id = unidad_negocio_id
     }
     if (activo !== undefined) usuarios[index].activo = activo
