@@ -53,13 +53,19 @@ const addUnidadNegocio = async (req, res) => {
     const { nombre, tipo, direccion, activo } = validacion.data
     const codigo = generarCodigo(nombre)
     const unidades = await readData('unidadesNegocio')
-    const duplicate = unidades.find(e => e.codigo === codigo && e.activo !== false)
-    if (duplicate) {
-      return res.status(409).json({
-        error: true,
-        codigo_http: 409,
-        mensaje: 'La unidad de negocio ya existe.'
-      })
+    const existente = unidades.find(p => p.codigo === codigo);
+    if (existente) {
+      if (existente.activo !== false) {
+        return res.status(409).json({ error: true, codigo_http: 409, mensaje: 'La unidad de negocio ya existe.' });
+      } else {
+        // Resurrección (Auto-Upsert)
+        existente.activo = true;
+        existente.nombre = nombre;
+        existente.tipo = tipo;
+        existente.direccion = direccion;
+        await writeData('unidadesNegocio', unidades);
+        return res.status(200).json({ mensaje: 'La unidad de negocio ha sido reactivada y actualizada exitosamente.', unidad: existente });
+      }
     }
     const id = uuidv4()
     const unidad = new UnidadNegocio(id, nombre, codigo, tipo, direccion, activo ?? true)
@@ -85,6 +91,9 @@ const updateUnidadNegocio = async (req, res) => {
         codigo_http: 404,
         mensaje: `La unidad de negocio con ID ${id} no fue encontrada.`
       })
+    }
+    if (unidades[index].activo === false) {
+      return res.status(409).json({ error: true, codigo_http: 409, mensaje: 'No se puede editar una unidad de negocio inactiva.' });
     }
     const validacion = unidadNegocioSchema.safeParse(req.body)
     if (!validacion.success) {

@@ -26,12 +26,15 @@ El código debe estar organizado modularmente. Cada entidad/recurso implementa e
 ### 3.2 Operación de Alta (Create)
 * **Validación Referencial:** Antes de guardar en el JSON, verificar que todas las referencias cruzadas existan y estén activas (`activo !== false`).
 * **Congelamiento de Datos:** Al insertar transacciones (ej. `DetallePedido`), se debe copiar el precio actual del catálogo hacia la línea de detalle para que quede inmutable ante futuros cambios de precio.
+* **Patrón de Auto-Upsert (Resurrección):** Si la validación de unicidad detecta un registro duplicado (por email o código) pero dicho registro se encuentra dado de baja lógica (`activo: false`), el sistema debe reactivarlo (`activo: true`), sobreescribir sus datos con el nuevo payload y retornar un `200 OK` (no un 201).
+* **Inferencia de Relaciones:** En operaciones transaccionales como Pedidos, la unidad de negocio originaria no debe viajar en el payload HTTP; debe inferirse de forma segura en el backend a partir del `usuario_id` validado.
 
 ### 3.3 Operaciones de Lectura (Read) y Joins Lógicos
 * Los endpoints `GET` que devuelvan entidades compuestas deben inyectar la información relacionada en la respuesta JSON (ej. inyectar `usuario_nombre` e `insumo_nombre` resolviéndolos asíncronamente en el controlador).
 
 ### 3.4 Operaciones de Actualización (Update)
-* **Verificación de Máquina de Estados:** Bloquear actualizaciones mediante código `409 Conflict` si el estado de la entidad no permite modificaciones (ej. distinto de `PENDIENTE`).
+* **Bloqueo por Inactividad:** Retornar `409 Conflict` si se intenta ejecutar un `PUT` o `PATCH` sobre cualquier entidad de catálogo (Producto, Usuario, etc.) cuyo estado actual sea inactivo (`activo: false`).
+* **Verificación de Máquina de Estados:** Bloquear actualizaciones en transacciones mediante código `409 Conflict` si el estado de la entidad no permite modificaciones (ej. distinto de `PENDIENTE`).
 * **Patrón de Reemplazo Total:** Las peticiones `PUT` aplican un reemplazo destructivo sobre los arrays hijos (ej. `detalles`). No se realizan fusiones; el array recibido sobrescribe íntegramente al almacenado.
 
 ### 3.5 Operaciones de Baja (Delete)

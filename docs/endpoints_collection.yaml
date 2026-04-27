@@ -11,8 +11,8 @@ collection:
     meta:
       id: fld_1956f8cff46046f48713a4cf5cfcce26
       created: 1777032952833
-      modified: 1777032962454
-      sortKey: -1777032952833
+      modified: 1777311520572
+      sortKey: -1777037546101.125
       description: ""
     children:
       - url: http://localhost:3000/api/insumos
@@ -20,7 +20,7 @@ collection:
         meta:
           id: req_27e86961727c4ce8be7d9244279ba332
           created: 1777032831037
-          modified: 1777056652077
+          modified: 1777312139252
           isPrivate: false
           description: ""
           sortKey: -1777033006679
@@ -29,9 +29,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "nombre": "Harina 0000",
+              "nombre": "Este es para actualizar y borrar",
               "unidad_medida": "KG",
-            	"cantidad" : 100
+              "stock_actual": 300,
+              "punto_pedido": 100
             }
         headers:
           - name: Content-Type
@@ -53,7 +54,7 @@ collection:
         meta:
           id: req_761b1df87677496caf18efda2e09d67f
           created: 1777032991439
-          modified: 1777033494541
+          modified: 1777257882370
           isPrivate: false
           description: ""
           sortKey: -1777033006829
@@ -71,12 +72,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/insumos/insumo-0
+      - url: http://localhost:3000/api/insumos/f537a32f-89a5-4de7-9af5-c713673be550
         name: DELETE Insumo (by ID)
         meta:
           id: req_9ee71c3dab714ab1ba9694c153934808
           created: 1777033045667
-          modified: 1777040697244
+          modified: 1777312176072
           isPrivate: false
           description: ""
           sortKey: -1777033006629
@@ -117,12 +118,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/insumos/108127dc-2cbc-4dae-9c48-0c62a4d02939
+      - url: http://localhost:3000/api/insumos/f537a32f-89a5-4de7-9af5-c713673be550
         name: UPDATE Insumos
         meta:
           id: req_13289668b16543f7a224db3815cae819
           created: 1777041020056
-          modified: 1777041094674
+          modified: 1777312160459
           isPrivate: false
           description: ""
           sortKey: -1777033006654
@@ -131,7 +132,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"nombre": "Pepino"
+              "nombre": "Lo actualice",
+              "unidad_medida": "KG",
+              "stock_actual": 300,
+              "punto_pedido": 100
             }
         headers:
           - name: Content-Type
@@ -179,12 +183,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/productos/10c86c4d-8602-40a3-92a2-9dbe1f46ed1d
+      - url: http://localhost:3000/api/productos/8bf507b9-de1f-42cc-a432-be40fd93e983
         name: GET Producto (by ID)
         meta:
           id: req_d06e5c68e2df428ba3881f9f58060459
           created: 1777039699064
-          modified: 1777040683294
+          modified: 1777311743499
           isPrivate: false
           description: ""
           sortKey: -1777039730657
@@ -207,7 +211,7 @@ collection:
         meta:
           id: req_08494c2b961e421293f9a0a276db82cd
           created: 1777039775360
-          modified: 1777237642832
+          modified: 1777329127654
           isPrivate: false
           description: ""
           sortKey: -1777039730557
@@ -216,9 +220,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "nombre": "Pan Francés x KG",
-              "precio_costo": 800,
-              "precio_franquicia": 1000
+              "nombre": "Croissant Relleno",
+              "precio_costo": 650,
+              "precio_franquicia": 900
             }
         headers:
           - name: Content-Type
@@ -235,12 +239,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/productos/b5459b7f-28df-4838-a027-ef2f8e819ca1
+      - url: http://localhost:3000/api/productos/1acd963e-5236-446a-95c5-759f35b84616
         name: DELETE Producto (by ID)
         meta:
           id: req_dc371eb179bd48a0b81274b81e522ea6
           created: 1777039964993
-          modified: 1777040687907
+          modified: 1777329041288
           isPrivate: false
           description: ""
           sortKey: -1777039730457
@@ -258,12 +262,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/productos/10c86c4d-8602-40a3-92a2-9dbe1f46ed1d
+      - url: http://localhost:3000/api/productos/1acd963e-5236-446a-95c5-759f35b84616
         name: UPDATE Productos
         meta:
           id: req_6c626da12cc44178a477b036efb93353
           created: 1777040883073
-          modified: 1777040955169
+          modified: 1777329066117
           isPrivate: false
           description: ""
           sortKey: -1777039730507
@@ -272,7 +276,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"precio_costo": 40
+              "nombre": "Croissant Relleno Editado",
+              "precio_costo": 600,
+              "precio_franquicia": 800
             }
         headers:
           - name: Content-Type
@@ -302,7 +308,7 @@ collection:
         meta:
           id: req_c4ebf82be2984272a09a5e3b840b0ed9
           created: 1777034660636
-          modified: 1777233885769
+          modified: 1777310936724
           isPrivate: false
           description: ""
           sortKey: -1777039427912
@@ -320,12 +326,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/usuarios/f341f6dc-b06a-4f2e-a88a-0003df14f623
+      - url: http://localhost:3000/api/usuarios/97e19349-0f0d-4a6a-b628-a0eec4b8a6a9
         name: GET Usuario (by ID)
         meta:
           id: req_0e7037a03fc8488daeddf52e2e169a70
           created: 1777039393351
-          modified: 1777040671529
+          modified: 1777311179668
           isPrivate: false
           description: ""
           sortKey: -1777039427812
@@ -348,7 +354,7 @@ collection:
         meta:
           id: req_3bcbf9f8d7754700aa8b2f05cfb67dda
           created: 1777039442188
-          modified: 1777237610089
+          modified: 1777328999656
           isPrivate: false
           description: ""
           sortKey: -1777039427712
@@ -357,10 +363,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "nombre": "Pedro Moreno",
-              "email": "p.moreno@espigadeoro.com",
-              "rol": "ENCARGADO_SUCURSAL",
-              "unidad_negocio_id": "78654d49-1ae4-4738-bf3c-c2839d8f1aa2"
+              "nombre": "Admin Falso",
+              "email": "infiltrado@espiga.com",
+              "rol": "ADMIN_PLANTA",
+              "unidad_negocio_id": "64cc959a-88dd-4570-bd7a-8723d25d77ab"
             }
         headers:
           - name: Content-Type
@@ -377,12 +383,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/usuarios/dd3e81bb-42b0-4c6d-a8b1-26f99af3b660
+      - url: http://localhost:3000/api/usuarios/15fbefde-8811-4e07-98d2-febea820d39f
         name: DELETE Usuario (by ID)
         meta:
           id: req_2cd46b9234214d6d96d6bb607929a012
           created: 1777039580142
-          modified: 1777040676446
+          modified: 1777311340273
           isPrivate: false
           description: ""
           sortKey: -1777039427612
@@ -400,12 +406,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/usuarios/f341f6dc-b06a-4f2e-a88a-0003df14f623
+      - url: http://localhost:3000/api/usuarios/97e19349-0f0d-4a6a-b628-a0eec4b8a6a9
         name: UPDATE Usuario (by ID)
         meta:
           id: req_d01ea32996fa4bc0a2ee10d5be9c80f0
           created: 1777040714478
-          modified: 1777040791811
+          modified: 1777311272621
           isPrivate: false
           description: ""
           sortKey: -1777039427662
@@ -414,7 +420,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"nombre" : "Seguimos editando..."
+            	"nombre": "Franquiciado Pepe",
+              "email": "pepe_franquicia@espiga.com",
+              "rol": "FRANQUICIADO",
+              "unidad_negocio_id": "e5ba68d6-a343-4be7-bd41-584dfc5b18ae"
             }
         headers:
           - name: Content-Type
@@ -462,12 +471,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/unidadesNegocio/be55abe8-9c6b-46f8-b9c8-2953835fc864
+      - url: http://localhost:3000/api/unidadesNegocio/017ce3f2-75ef-43bd-b5b2-38eb455ecd45
         name: GET UnidadNegocio (by ID)
         meta:
           id: req_140e52ace7024e5bb6ec1abac053e52a
           created: 1777040042826
-          modified: 1777233026002
+          modified: 1777310507048
           isPrivate: false
           description: ""
           sortKey: -1777040402966
@@ -490,7 +499,7 @@ collection:
         meta:
           id: req_0c8f4ebd8491472d80595887da0824b8
           created: 1777040079027
-          modified: 1777233338210
+          modified: 1777310835625
           isPrivate: false
           description: ""
           sortKey: -1777040402866
@@ -499,9 +508,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "nombre": "Sucursal Flores",
+              "nombre": "Local Propio San Justo",
               "tipo": "SUCURSAL_PROPIA",
-              "direccion": "Av. Rivadavia 7000"
+              "direccion": "Ocampo 333"
             }
         headers:
           - name: Content-Type
@@ -518,12 +527,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/unidadesNegocio/b0533061-7c5b-4eae-8ed1-33fa4839e93c
+      - url: http://localhost:3000/api/unidadesNegocio/017ce3f2-75ef-43bd-b5b2-38eb455ecd45
         name: DELETE UnidadNegocio (by ID)
         meta:
           id: req_778d5196e2774ff29de8b4eb6efe1c8f
           created: 1777040195376
-          modified: 1777040664658
+          modified: 1777310626906
           isPrivate: false
           description: ""
           sortKey: -1777040402766
@@ -541,12 +550,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/unidadesNegocio/63f8e7a8-7efa-4c76-8e2e-0e5ce1cce431
+      - url: http://localhost:3000/api/unidadesNegocio/017ce3f2-75ef-43bd-b5b2-38eb455ecd45
         name: UPDATE UnidadNegocio (by ID)
         meta:
           id: req_3550d5ee712d42f5be459c57a53abd48
           created: 1777040548098
-          modified: 1777040703818
+          modified: 1777310580183
           isPrivate: false
           description: ""
           sortKey: -1777040402816
@@ -555,8 +564,9 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"nombre" : "Editando el nombre",
-            	"tipo" : "FRANQUICIA"
+              "nombre": "Planta Central San Justo",
+              "tipo": "PLANTA_CENTRAL",
+              "direccion": "Ruta 3 Km 20"
             }
         headers:
           - name: Content-Type
@@ -573,20 +583,20 @@ collection:
             send: true
             store: true
           rebuildPath: true
-  - name: Pedidos
+  - name: Pedidos (Venta)
     meta:
       id: fld_b50b3bdfad0b43769d8a1c0509102fdd
       created: 1777232142698
-      modified: 1777233390300
+      modified: 1777256957871
       sortKey: -1777036953230.5
       description: ""
     children:
-      - url: http://localhost:3000/api/pedidos/
-        name: ADD Pedido
+      - url: http://localhost:3000/api/pedidos-productos/
+        name: ADD PedidoVenta
         meta:
           id: req_edac935a96874837a0019b39c8767b30
           created: 1777232149123
-          modified: 1777237709191
+          modified: 1777329182472
           isPrivate: false
           description: ""
           sortKey: -1777232390915.5
@@ -595,11 +605,10 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "unidad_negocio_id": "78654d49-1ae4-4738-bf3c-c2839d8f1aa2",
-              "usuario_id": "42d31e2d-aa08-4cc3-901b-37c4b8cd27da",
+              "usuario_id": "927937e0-0a3f-4a08-8fad-c5bacc659638",
               "detalles": [
                 {
-                  "producto_id": "145e0a49-4668-4311-aea3-054acb49d013",
+                  "producto_id": "1acd963e-5236-446a-95c5-759f35b84616",
                   "cantidad": 10
                 }
               ]
@@ -619,32 +628,17 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/pedidos/
-        name: GET Pedidos
+      - url: http://localhost:3000/api/pedidos-productos
+        name: GET PedidosVentas
         meta:
           id: req_f952abc7340e440ab680aebae47ad57f
           created: 1777232407146
-          modified: 1777233857385
+          modified: 1777313151732
           isPrivate: false
           description: ""
           sortKey: -1777232390978
         method: GET
-        body:
-          mimeType: application/json
-          text: |-
-            {
-              "unidad_negocio_id": "be55abe8-9c6b-46f8-b9c8-2953835fc866",
-              "usuario_id": "356ae3e4-0158-42a7-b01e-aa1865faf76e",
-              "detalles": [
-                {
-                  "producto_id": "3f6532ea-70ca-43f4-9268-f2663815372a",
-                  "cantidad": 10
-                }
-              ]
-            }
         headers:
-          - name: Content-Type
-            value: application/json
           - name: User-Agent
             value: insomnia/12.5.0
             description: ""
@@ -657,32 +651,17 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/pedidos/429a831d-a409-4110-bb8b-426c31b95db4
-        name: GET Pedido (by ID)
+      - url: http://localhost:3000/api/pedidos-productos/77feb8b6-0622-4313-9d25-96d818069bf6
+        name: GET PedidoVenta (by ID)
         meta:
           id: req_a01f253626814c9689711730fc0578bf
           created: 1777232512514
-          modified: 1777232534446
+          modified: 1777314252557
           isPrivate: false
           description: ""
           sortKey: -1777232390928
         method: GET
-        body:
-          mimeType: application/json
-          text: |-
-            {
-              "unidad_negocio_id": "be55abe8-9c6b-46f8-b9c8-2953835fc866",
-              "usuario_id": "356ae3e4-0158-42a7-b01e-aa1865faf76e",
-              "detalles": [
-                {
-                  "producto_id": "3f6532ea-70ca-43f4-9268-f2663815372a",
-                  "cantidad": 10
-                }
-              ]
-            }
         headers:
-          - name: Content-Type
-            value: application/json
           - name: User-Agent
             value: insomnia/12.5.0
             description: ""
@@ -695,12 +674,12 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/pedidos/35d3148b-7418-4544-bfcd-261d9066ad45
-        name: UPDATE Pedido Detalles (by ID)
+      - url: http://localhost:3000/api/pedidos-productos/77feb8b6-0622-4313-9d25-96d818069bf6
+        name: UPDATE PedidoVentaDetalles (by ID)
         meta:
           id: req_6f3060c3eb524f058a54a48db4f8bf17
           created: 1777232552156
-          modified: 1777238681988
+          modified: 1777314228026
           isPrivate: false
           description: ""
           sortKey: -1777232390903
@@ -709,14 +688,15 @@ collection:
           mimeType: application/json
           text: |-
             {
+              "usuario_id": "97e19349-0f0d-4a6a-b628-a0eec4b8a6a9",
               "detalles": [
                 {
-                  "producto_id": "145e0a49-4668-4311-aea3-054acb49d013",
-                  "cantidad": 5
+                  "producto_id": "8bf507b9-de1f-42cc-a432-be40fd93e983",
+                  "cantidad": 35
                 },
             		{
-            			"producto_id" : "e1cf0b50-b6c0-407e-84d1-a5d6b430156c",
-            			"cantidad" : 10
+            			"producto_id": "9083e473-fab9-453c-a997-8df6dbec72af",
+            			"cantidad": 10
             		}
               ]
             }
@@ -735,16 +715,87 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/pedidos/35d3148b-7418-4544-bfcd-261d9066ad45
-        name: DELETE Pedido (by ID)
+      - url: http://localhost:3000/api/pedidos-productos/31188f0a-5f6b-4c8b-a19d-f2a8d365999c
+        name: DELETE PedidoVenta (by ID)
         meta:
           id: req_c7e4f53357964cf3bae15ed8f223f596
           created: 1777232627865
-          modified: 1777237941562
+          modified: 1777313940286
           isPrivate: false
           description: ""
           sortKey: -1777232390890.5
         method: DELETE
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"usuario_id" : "97e19349-0f0d-4a6a-b628-a0eec4b8a6a9"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos-productos/77feb8b6-0622-4313-9d25-96d818069bf6/estado
+        name: UPDATE PedidoVentaEstado (by ID)
+        meta:
+          id: req_a2b68e9efc3544cb9f5a82f34c80b8c6
+          created: 1777238690964
+          modified: 1777314217207
+          isPrivate: false
+          description: ""
+          sortKey: -1777232390896.75
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987",
+              "estado": "EN_PRODUCCION"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Pedidos (Insumos)
+    meta:
+      id: fld_4edf46b8ced64e42b95a5a3f6bde634c
+      created: 1777256974359
+      modified: 1777256985892
+      sortKey: -1777034953031.75
+      description: ""
+    children:
+      - url: http://localhost:3000/api/pedidos-insumos
+        name: GET PedidosInsumos
+        meta:
+          id: req_7fa2caf5fca449b6b445258527d446f2
+          created: 1777257349172
+          modified: 1777299902932
+          isPrivate: false
+          description: ""
+          sortKey: -1777257367946
+        method: GET
         headers:
           - name: User-Agent
             value: insomnia/12.5.0
@@ -758,22 +809,154 @@ collection:
             send: true
             store: true
           rebuildPath: true
-      - url: http://localhost:3000/api/pedidos/c161e3ca-2f32-411d-b097-c5f17a439115/estado
-        name: UPDATE Pedido Estado (by ID)
+      - url: http://localhost:3000/api/pedidos-insumos/1cd1dade-5368-483d-a8d2-c0946af69569
+        name: GET PedidoInsumos (by ID)
         meta:
-          id: req_a2b68e9efc3544cb9f5a82f34c80b8c6
-          created: 1777238690964
-          modified: 1777238851369
+          id: req_eb7478360440462092df46ed0feaf0a0
+          created: 1777257468824
+          modified: 1777312312042
           isPrivate: false
           description: ""
-          sortKey: -1777232390896.75
+          sortKey: -1777244879462
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos-insumos
+        name: ADD PedidoInsumos
+        meta:
+          id: req_350cacdc38f848538ababd4f1f5bff41
+          created: 1777257487552
+          modified: 1777312719763
+          isPrivate: false
+          description: ""
+          sortKey: -1777238635220
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987",
+              "detalles": [
+                {
+                  "insumo_id": "8f69b351-e155-4f00-8995-07378a9f9ea2",
+                  "cantidad": 1
+                }
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos-insumos/a16b4880-4931-4d62-9259-eecb756db09c
+        name: UPDATE PedidoInsumos (by ID)
+        meta:
+          id: req_c36e676832074ce9a93c1310b08fe961
+          created: 1777312398598
+          modified: 1777312891672
+          isPrivate: false
+          description: ""
+          sortKey: -1777235513099
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987",
+              "detalles": [
+                {
+                  "insumo_id": "8f69b351-e155-4f00-8995-07378a9f9ea2",
+                  "cantidad": 10000
+                },
+            		{
+            			"insumo_id": "db3f7b9d-7d84-4222-8a91-dd8dece1e5ca",
+            			"cantidad": 500
+            		}
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos-insumos/a16b4880-4931-4d62-9259-eecb756db09c/estado
+        name: UPDATE PedidoInsumosEstado (by ID)
+        meta:
+          id: req_6d24699621204f87a925c4c1380d7aa0
+          created: 1777312569527
+          modified: 1777312884175
+          isPrivate: false
+          description: ""
+          sortKey: -1777233952038.5
         method: PATCH
         body:
           mimeType: application/json
           text: |-
             {
-              "usuario_id": "ee05ac35-9259-4f93-b641-476cf99de14e",
-              "estado": "EN_PRODUCCION"
+              "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987",
+              "estado": "RECIBIDO"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.5.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/pedidos-insumos/a16b4880-4931-4d62-9259-eecb756db09c
+        name: DELETE PedidoInsumo (by ID)
+        meta:
+          id: req_164b829dd11f4e06a29853d525b10a59
+          created: 1777312754179
+          modified: 1777312832241
+          isPrivate: false
+          description: ""
+          sortKey: -1777233951938.5
+        method: DELETE
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987"
             }
         headers:
           - name: Content-Type

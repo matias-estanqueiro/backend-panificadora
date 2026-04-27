@@ -69,26 +69,28 @@ const addPedido = async (req, res) => {
     if (!parsed.success) {
       return res.status(400).json({ error: true, codigo_http: 400, mensaje: 'Errores de validación', detalles: parsed.error.issues });
     }
-    const { unidad_negocio_id, usuario_id, detalles } = parsed.data;
+    const { usuario_id, detalles } = parsed.data;
 
     const usuarios = await readData('usuarios');
-    const unidades = await readData('unidadesNegocio');
-    const productos = await readData('productos');
-
     const usuario = usuarios.find(u => u.id === usuario_id && u.activo !== false);
     if (!usuario) {
       return res.status(404).json({ error: true, codigo_http: 404, mensaje: 'Usuario no encontrado o inactivo.' });
     }
-    const unidad = unidades.find(u => u.id === unidad_negocio_id && u.activo !== false);
-    if (!unidad) {
-      return res.status(404).json({ error: true, codigo_http: 404, mensaje: 'Unidad de negocio no encontrada o inactiva.' });
-    }
-    
-    // Validación de pertenencia
-    if (usuario.unidad_negocio_id !== unidad_negocio_id) {
-      return res.status(409).json({ error: true, codigo_http: 409, mensaje: 'El usuario no pertenece a la unidad de negocio indicada.' });
+
+    // Regla: Bloquear ADMIN_PLANTA
+    if (usuario.rol === 'ADMIN_PLANTA') {
+      return res.status(403).json({ error: true, codigo_http: 403, mensaje: 'La planta no puede crear pedidos de venta.' });
     }
 
+    // Regla: Inferir unidad_negocio_id automáticamente
+    const unidad_negocio_id = usuario.unidad_negocio_id;
+    const unidades = await readData('unidadesNegocio');
+    const unidad = unidades.find(u => u.id === unidad_negocio_id && u.activo !== false);
+    if (!unidad) {
+      return res.status(404).json({ error: true, codigo_http: 404, mensaje: 'Unidad de negocio asociada no encontrada o inactiva.' });
+    }
+
+    const productos = await readData('productos');
     const pedido_id = uuidv4();
     const detallesPedido = [];
     

@@ -75,17 +75,17 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 ### 4.4 Usuario
 * **id** (String/UUID): Generado automáticamente por el sistema.
 * **nombre** (String): Obligatorio. Min: 3 caracteres, Max: 50. Solo letras y espacios. Regex: `^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$`
-* **email** (String): Obligatorio. Debe tener un formato de correo electrónico válido. Debe ser único en el sistema.
+* **email** (String): Obligatorio. Formato válido y único en el sistema.
 * **rol** (String): Obligatorio. Valores estrictos (Enum): `["ADMIN_PLANTA", "ENCARGADO_SUCURSAL", "FRANQUICIADO"]`.
-* **unidad_negocio_id** (String/UUID): Obligatorio. Debe coincidir con el ID de una Unidad de Negocio existente (Validación referencial).
+* **unidad_negocio_id** (String/UUID): Obligatorio. Debe coincidir con el ID de una Unidad de Negocio existente. **Regla de Negocio (Validación Cruzada):** Un `ADMIN_PLANTA` solo puede asignarse a una `PLANTA_CENTRAL`; `ENCARGADO_SUCURSAL` a `SUCURSAL_PROPIA`; y `FRANQUICIADO` a `FRANQUICIA`.
 * **activo** (Boolean): Obligatorio. Valor por defecto: `true`.
 
 ### 4.5 Pedido (Venta)
 * **id** (String/UUID): Generado automáticamente por el sistema.
-* **unidad_negocio_id** (String/UUID): Obligatorio. Referencia a la Unidad de Negocio que solicita.
-* **usuario_id** (String/UUID): Obligatorio. Referencia al Usuario que registra la operación.
-* **estado** (String): Obligatorio. Valores estrictos (Enum): `["PENDIENTE", "EN_PRODUCCION", "DESPACHADO", "ENTREGADO", "CANCELADO"]`. Valor por defecto al crear: `PENDIENTE`.
-* **fecha** (String/ISO 8601 Date): Generada automáticamente al momento de la creación.
+* **unidad_negocio_id** (String/UUID): Inferido automáticamente por el backend a partir del `usuario_id` creador para evitar suplantaciones. **No se envía en el payload**.
+* **usuario_id** (String/UUID): Obligatorio. Referencia al Usuario que registra la operación. **Regla de Negocio:** El rol `ADMIN_PLANTA` no tiene permisos para crear pedidos de venta (retorna 403).
+* **estado** (String): Obligatorio. Valores estrictos (Enum): `["PENDIENTE", "EN_PRODUCCION", "DESPACHADO", "ENTREGADO", "CANCELADO"]`. Valor por defecto: `PENDIENTE`.
+* **fecha** (String/ISO 8601 Date): Generada automáticamente.
 
 ### 4.6 DetallePedido
 * **id** (String/UUID): Generado automáticamente por el sistema.
@@ -113,6 +113,8 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 - **Persistencia asíncrona:** Todas las operaciones CRUD utilizan métodos asíncronos centralizados (`readData`, `writeData` en `lib/fs.js`). No se utiliza `fs` nativo en controladores ni tests.
 - **Validación estructural:** Todos los endpoints validan primero la estructura y tipos de datos usando Zod. Solo si el payload es válido, se ejecutan validaciones de unicidad y referenciales.
 - **Formato de error estándar:** Todas las respuestas de error siguen `{ error: true, codigo_http, mensaje }`.
+- **Auto-Upsert (Resurrección):** Si al intentar crear una entidad de catálogo (Unidad, Usuario, Producto, Insumo) se detecta un duplicado de código o email, pero la entidad existente tiene un estado inactivo (`activo: false`), el sistema realiza una resurrección. Cambia el estado a `activo: true`, sobreescribe los datos con el nuevo payload y devuelve un `200 OK` (reactivación).
+- **Bloqueo de Edición Inactiva:** El sistema prohíbe las operaciones `PUT` o `PATCH` sobre cualquier entidad de catálogo que se encuentre dada de baja (`activo: false`).
 
 ### 5.1 Ciclo de Vida del Pedido de Venta (Máquina de Estados)
 1. **PENDIENTE**: Solicitud emitida. Único estado abierto a modificaciones o cancelaciones.

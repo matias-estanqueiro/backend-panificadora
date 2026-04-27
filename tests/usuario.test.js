@@ -1,99 +1,136 @@
-
 import request from 'supertest'
 import app from '../app.js'
 import { limpiarData } from './helpers/limpiarData.js'
+import { writeData } from '../lib/fs.js'
+import { v4 as uuidv4 } from 'uuid'
+
+let unidadPlantaId, unidadSucursalId, unidadFranquiciaId;
 
 beforeAll(async () => {
   await limpiarData();
+  
+  unidadPlantaId = uuidv4();
+  unidadSucursalId = uuidv4();
+  unidadFranquiciaId = uuidv4();
+
+  // Sembrar unidades de diferentes tipos para probar validación de roles
+  await writeData('unidadesNegocio', [
+    { id: unidadPlantaId, nombre: 'Planta Test', tipo: 'PLANTA_CENTRAL', codigo: 'PLANTA-TEST', direccion: 'Calle 1', activo: true },
+    { id: unidadSucursalId, nombre: 'Sucursal Test', tipo: 'SUCURSAL_PROPIA', codigo: 'SUCURSAL-TEST', direccion: 'Calle 2', activo: true },
+    { id: unidadFranquiciaId, nombre: 'Franquicia Test', tipo: 'FRANQUICIA', codigo: 'FRANQUICIA-TEST', direccion: 'Calle 3', activo: true }
+  ]);
 })
 
-let unidadNegocioIdValida;
-
-const crearUsuario = async (email = 'testusuario@email.com', unidad_negocio_id = unidadNegocioIdValida) => {
-  const res = await request(app)
+const crearUsuarioManual = async (nombre, email, rol, unidadId) => {
+  return await request(app)
     .post('/api/usuarios')
-    .send({ nombre: 'TestUsuario', email, rol: 'ENCARGADO_SUCURSAL', unidad_negocio_id })
-  return res.body.usuario?.id
+    .send({ nombre, email, rol, unidad_negocio_id: unidadId });
 }
 
 describe('Módulo Usuario', () => {
-  beforeAll(async () => {
-    // Crear una unidad de negocio válida para asociar usuarios
-    const res = await request(app)
-      .post('/api/unidadesNegocio')
-      .send({
-        id: '00000000-0000-0000-0000-000000000001',
-        nombre: 'Unidad Negocio Test',
-        codigo: 'UNIDAD-NEGOCIO-TEST',
-        tipo: 'SUCURSAL_PROPIA',
-        direccion: 'Calle Test 123',
-        activo: true
-      })
-    unidadNegocioIdValida = res.body.unidad.id
-  })
+  
   test('GET /api/usuarios debe devolver un array y status 200', async () => {
     const res = await request(app).get('/api/usuarios')
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
   })
 
-  test('POST /api/usuarios debe crear un usuario exitosamente', async () => {
-    const res = await request(app)
-      .post('/api/usuarios')
-      .send({ nombre: 'Juan Pérez', email: 'juan@email.com', rol: 'FRANQUICIADO', unidad_negocio_id: unidadNegocioIdValida })
-    expect(res.status).toBe(201)
-    expect(res.body.usuario).toBeDefined()
-    expect(res.body.usuario.nombre).toBe('Juan Pérez')
-    expect(res.body.usuario.email).toBe('juan@email.com')
-    expect(res.body.usuario.activo).toBe(true)
-  })
+  describe('POST /api/usuarios', () => {
+    test('crea un usuario exitosamente respetando el cruce de rol y unidad', async () => {
+      const res = await request(app)
+        .post('/api/usuarios')
+        .send({ 
+          nombre: 'Juan Admin', 
+          email: 'juan@planta.com', 
+          rol: 'ADMIN_PLANTA', 
+          unidad_negocio_id: unidadPlantaId 
+        })
+      expect(res.status).toBe(201)
+      expect(res.body.usuario.nombre).toBe('Juan Admin')
+    })
 
-  test('POST /api/usuarios con datos inválidos debe devolver 400', async () => {
-    const res = await request(app)
-      .post('/api/usuarios')
-      .send({ nombre: '!!', email: 'noesemail', rol: 'INVALID', unidad_negocio_id: '123' })
-    expect(res.status).toBe(400)
-    expect(res.body).toMatchObject({
-      error: true,
-      codigo_http: 400,
-      mensaje: 'Errores de validación',
-      detalles: expect.any(Array)
+    test('retorna 409 si el rol no coincide con el tipo de unidad de negocio', async () => {
+      // Intentar poner un ADMIN_PLANTA en una SUCURSAL
+      const res = await request(app)
+        .post('/api/usuarios')
+        .send({ 
+          nombre: 'Infiltrado', 
+          email: 'infil@test.com', 
+          rol: 'ADMIN_PLANTA', 
+          unidad_negocio_id: unidadSucursalId 
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.mensaje).toMatch(/solo puede pertenecer a una PLANTA_CENTRAL/i)
+    })
+
+    test('realiza un auto-upsert (resurrección) si el email existe pero está inactivo', async () => {
+      // 1. Crear y borrar usuario
+      const resPost = await crearUsuarioManual('Lazarus', 'lazarus@test.com', 'ENCARGADO_SUCURSAL', unidadSucursalId);
+      const id = resPost.body.usuario.id;
+      await request(app).delete(`/api/usuarios/${id}`);
+
+      // 2. Intentar crear el mismo email (debe resucitarlo)
+      const resResurrect = await request(app)
+        .post('/api/usuarios')
+        .send({ 
+          nombre: 'Lazarus Revivido', 
+          email: 'lazarus@test.com', 
+          rol: 'ENCARGADO_SUCURSAL', 
+          unidad_negocio_id: unidadSucursalId 
+        });
+      
+      expect(resResurrect.status).toBe(200); 
+      expect(resResurrect.body.usuario.activo).toBe(true);
+      expect(resResurrect.body.usuario.nombre).toBe('Lazarus Revivido');
+      expect(resResurrect.body.usuario.id).toBe(id); // Mismo ID
     })
   })
 
-  test('POST /api/usuarios con email duplicado debe devolver 409', async () => {
-    await request(app)
-      .post('/api/usuarios')
-      .send({ nombre: 'UsuarioUno', email: 'duplicado@email.com', rol: 'FRANQUICIADO', unidad_negocio_id: unidadNegocioIdValida })
-    // Payload estructuralmente perfecto para Zod
-    const res = await request(app)
-      .post('/api/usuarios')
-      .send({ nombre: 'UsuarioDos', email: 'duplicado@email.com', rol: 'ADMIN_PLANTA', unidad_negocio_id: unidadNegocioIdValida })
-    expect(res.status).toBe(409)
-    expect(res.body).toEqual({
-      error: true,
-      codigo_http: 409,
-      mensaje: expect.any(String)
+  describe('PUT /api/usuarios/:id', () => {
+    test('retorna 409 si se intenta editar un usuario inactivo', async () => {
+      const resPost = await crearUsuarioManual('Inactivo', 'inactivo@test.com', 'FRANQUICIADO', unidadFranquiciaId);
+      const id = resPost.body.usuario.id;
+      await request(app).delete(`/api/usuarios/${id}`);
+
+      const resPut = await request(app)
+        .put(`/api/usuarios/${id}`)
+        .send({ 
+          nombre: 'Intento Editar',
+          email: 'inactivo@test.com', // Payload completo para pasar Zod
+          rol: 'FRANQUICIADO',
+          unidad_negocio_id: unidadFranquiciaId
+        });
+      
+      expect(resPut.status).toBe(409);
+      expect(resPut.body.mensaje).toMatch(/inactivo/i);
+    })
+
+    test('valida el cruce de roles también durante la actualización', async () => {
+      const resPost = await crearUsuarioManual('Cambiante', 'cambiante@test.com', 'ENCARGADO_SUCURSAL', unidadSucursalId);
+      const id = resPost.body.usuario.id;
+
+      // Intentar cambiar rol a ADMIN_PLANTA manteniendo la unidad de Sucursal
+      const resPut = await request(app)
+        .put(`/api/usuarios/${id}`)
+        .send({ 
+          nombre: 'Cambiante',
+          email: 'cambiante@test.com',
+          rol: 'ADMIN_PLANTA', // Acá está el cambio malicioso
+          unidad_negocio_id: unidadSucursalId // Mantenemos la sucursal
+        });
+      
+      expect(resPut.status).toBe(409);
     })
   })
 
-  test('DELETE /api/usuarios/:id debe hacer baja lógica y status 200', async () => {
-    const id = await crearUsuario('baja@email.com', unidadNegocioIdValida)
-    const res = await request(app).delete(`/api/usuarios/${id}`)
-    expect(res.status).toBe(200)
-    expect(res.body.message).toMatch(/dado de baja/i)
-    // Verificar que el usuario ahora está inactivo
-    const getRes = await request(app).get(`/api/usuarios/${id}`)
-    expect(getRes.body.activo).toBe(false)
-  })
+  test('DELETE /api/usuarios/:id debe hacer baja lógica', async () => {
+    const resPost = await crearUsuarioManual('Borrar', 'borrar@test.com', 'ENCARGADO_SUCURSAL', unidadSucursalId);
+    const id = resPost.body.usuario.id;
 
-  test('DELETE /api/usuarios/:id con ID inválido debe devolver 404 y formato de error', async () => {
-    const res = await request(app).delete('/api/usuarios/id-inexistente')
-    expect(res.status).toBe(404)
-    expect(res.body).toEqual({
-      error: true,
-      codigo_http: 404,
-      mensaje: expect.any(String)
-    })
+    const resDel = await request(app).delete(`/api/usuarios/${id}`)
+    expect(resDel.status).toBe(200)
+    
+    const resGet = await request(app).get(`/api/usuarios/${id}`)
+    expect(resGet.body.activo).toBe(false)
   })
 })

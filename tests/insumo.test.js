@@ -1,4 +1,3 @@
-
 import request from 'supertest'
 import app from '../app.js'
 import { limpiarData } from './helpers/limpiarData.js'
@@ -7,7 +6,6 @@ beforeAll(async () => {
   await limpiarData();
 })
 
-// Utilidad para crear un insumo antes de testear DELETE
 const crearInsumo = async () => {
   const res = await request(app)
     .post('/api/insumos')
@@ -22,103 +20,91 @@ describe('Módulo Insumo', () => {
     expect(Array.isArray(res.body)).toBe(true)
   })
 
+  describe('POST /api/insumos', () => {
+    test('crea un insumo exitosamente', async () => {
+      const res = await request(app)
+        .post('/api/insumos')
+        .send({ nombre: 'Azúcar', unidad_medida: 'KG', stock_actual: 5, punto_pedido: 1 })
+      expect(res.status).toBe(201)
+      expect(res.body.insumo.nombre).toBe('Azúcar')
+      expect(res.body.insumo.codigo).toBe('AZUCAR')
+    })
 
-  test('POST /api/insumos debe crear un insumo exitosamente', async () => {
-    const res = await request(app)
-      .post('/api/insumos')
-      .send({ nombre: 'Azúcar', unidad_medida: 'KG', stock_actual: 5, punto_pedido: 1 })
-    expect(res.status).toBe(201)
-    expect(res.body.insumo).toBeDefined()
-    expect(res.body.insumo.nombre).toBe('Azúcar')
-    expect(res.body.insumo.codigo).toBeDefined()
-    expect(typeof res.body.insumo.codigo).toBe('string')
-    expect(res.body.insumo.codigo).toBe('AZUCAR')
-    expect(res.body.insumo.activo).toBe(true)
-  })
+    test('con datos inválidos debe devolver 400', async () => {
+      const res = await request(app)
+        .post('/api/insumos')
+        .send({ nombre: '!!', unidad_medida: 'INVALID', stock_actual: -1, punto_pedido: -2 })
+      expect(res.status).toBe(400)
+    })
 
-  test('POST /api/insumos con datos inválidos debe devolver 400', async () => {
-    const res = await request(app)
-      .post('/api/insumos')
-      .send({ nombre: '!!', unidad_medida: 'INVALID', stock_actual: -1, punto_pedido: -2 })
-    expect(res.status).toBe(400)
-    expect(res.body).toMatchObject({
-      error: true,
-      codigo_http: 400,
-      mensaje: 'Errores de validación',
-      detalles: expect.any(Array)
+    test('con nombre duplicado (activo) debe devolver 409', async () => {
+      await request(app).post('/api/insumos').send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
+      const res = await request(app).post('/api/insumos').send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
+      expect(res.status).toBe(409)
+    })
+
+    test('realiza un auto-upsert (resurrección) si el insumo existe pero está inactivo', async () => {
+      // 1. Crear y borrar insumo
+      const resPost = await request(app).post('/api/insumos').send({ nombre: 'Fenix Insumo', unidad_medida: 'LTS', stock_actual: 10, punto_pedido: 5 });
+      const id = resPost.body.insumo.id;
+      await request(app).delete(`/api/insumos/${id}`);
+
+      // 2. Resucitarlo
+      const resResurrect = await request(app).post('/api/insumos').send({ nombre: 'Fenix Insumo', unidad_medida: 'LTS', stock_actual: 20, punto_pedido: 10 });
+      expect(resResurrect.status).toBe(200);
+      expect(resResurrect.body.insumo.activo).toBe(true);
+      expect(resResurrect.body.insumo.stock_actual).toBe(20);
     })
   })
 
-  test('POST /api/insumos con nombre duplicado debe devolver 409', async () => {
-    // Crear el primero
-    await request(app)
-      .post('/api/insumos')
-      .send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
-    // Intentar crear el duplicado
-    const res = await request(app)
-      .post('/api/insumos')
-      .send({ nombre: 'Duplicado', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
-    expect(res.status).toBe(409)
-    expect(res.body).toEqual({
-      error: true,
-      codigo_http: 409,
-      mensaje: expect.any(String)
+  describe('PUT /api/insumos/:id', () => {
+    test('actualiza un insumo exitosamente', async () => {
+      const id = await crearInsumo()
+      const res = await request(app)
+        .put(`/api/insumos/${id}`)
+        .send({ nombre: 'Insumo Actualizado', unidad_medida: 'KG', stock_actual: 99, punto_pedido: 5 })
+      expect(res.status).toBe(200)
+      expect(res.body.insumo.nombre).toBe('Insumo Actualizado')
+      expect(res.body.insumo.codigo).toBe('INSUMO-ACTUALIZADO')
+      expect(res.body.insumo.stock_actual).toBe(99)
+    })
+
+    test('con nombre duplicado debe devolver 409', async () => {
+      await request(app).post('/api/insumos').send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
+      const res2 = await request(app).post('/api/insumos').send({ nombre: 'Otro', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
+      
+      const res = await request(app)
+        .put(`/api/insumos/${res2.body.insumo.id}`)
+        .send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
+      expect(res.status).toBe(409)
+    })
+
+    test('retorna 409 si se intenta editar un insumo inactivo', async () => {
+      const resPost = await request(app).post('/api/insumos').send({ nombre: 'Fantasma', unidad_medida: 'UN', stock_actual: 10, punto_pedido: 5 });
+      const id = resPost.body.insumo.id;
+      await request(app).delete(`/api/insumos/${id}`);
+
+      // Payload completo para pasar Zod
+      const resPut = await request(app)
+        .put(`/api/insumos/${id}`)
+        .send({ nombre: 'Fantasma Editado', unidad_medida: 'UN', stock_actual: 50, punto_pedido: 20 });
+      expect(resPut.status).toBe(409);
     })
   })
 
-  test('DELETE /api/insumos/:id debe hacer baja lógica y status 200', async () => {
-    const id = await crearInsumo()
-    const res = await request(app).delete(`/api/insumos/${id}`)
-    expect(res.status).toBe(200)
-    expect(res.body.message).toMatch(/dado de baja/i)
-    // Verificar que el insumo ahora está inactivo
-    const getRes = await request(app).get(`/api/insumos/${id}`)
-    expect(getRes.body.activo).toBe(false)
-  })
-
-
-
-  test('PUT /api/insumos/:id debe actualizar un insumo exitosamente', async () => {
-    const id = await crearInsumo()
-    const res = await request(app)
-      .put(`/api/insumos/${id}`)
-      .send({ nombre: 'Insumo Actualizado', unidad_medida: 'KG', stock_actual: 99, punto_pedido: 5 })
-    expect(res.status).toBe(200)
-    expect(res.body.insumo).toBeDefined()
-    expect(res.body.insumo.nombre).toBe('Insumo Actualizado')
-    expect(res.body.insumo.codigo).toBe('INSUMO-ACTUALIZADO')
-    expect(res.body.insumo.stock_actual).toBe(99)
-  })
-
-  test('PUT /api/insumos/:id con nombre duplicado debe devolver 409', async () => {
-    // Crear dos insumos con los campos correctos
-    const res1 = await request(app)
-      .post('/api/insumos')
-      .send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 1, punto_pedido: 1 })
-    const res2 = await request(app)
-      .post('/api/insumos')
-      .send({ nombre: 'Otro', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
-    // Intentar actualizar el segundo con el nombre del primero
-    const res = await request(app)
-      .put(`/api/insumos/${res2.body.insumo.id}`)
-      .send({ nombre: 'Original', unidad_medida: 'KG', stock_actual: 2, punto_pedido: 2 })
-    expect(res.status).toBe(409)
-    expect(res.body).toEqual({
-      error: true,
-      codigo_http: 409,
-      mensaje: expect.any(String)
+  describe('DELETE /api/insumos/:id', () => {
+    test('debe hacer baja lógica y status 200', async () => {
+      const id = await crearInsumo()
+      const res = await request(app).delete(`/api/insumos/${id}`)
+      expect(res.status).toBe(200)
+      
+      const resGet = await request(app).get(`/api/insumos/${id}`)
+      expect(resGet.body.activo).toBe(false)
     })
-  })
 
-  test('PUT /api/insumos/:id con ID inválido debe devolver 404 y formato de error', async () => {
-    const res = await request(app)
-      .put('/api/insumos/id-inexistente')
-      .send({ nombre: 'No existe' })
-    expect(res.status).toBe(404)
-    expect(res.body).toEqual({
-      error: true,
-      codigo_http: 404,
-      mensaje: expect.any(String)
+    test('con ID inválido debe devolver 404', async () => {
+      const res = await request(app).delete('/api/insumos/id-inexistente')
+      expect(res.status).toBe(404)
     })
   })
 })

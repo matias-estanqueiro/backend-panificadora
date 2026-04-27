@@ -38,9 +38,8 @@ beforeEach(async () => {
 });
 
 describe('POST /api/pedidos-productos', () => {
-  it('crea un pedido exitosamente calculando subtotales', async () => {
+  it('crea un pedido exitosamente calculando subtotales y sin requerir unidad_negocio_id', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [
         { producto_id: producto1Id, cantidad: 2 },
@@ -52,8 +51,23 @@ describe('POST /api/pedidos-productos', () => {
     
     expect(res.statusCode).toBe(201);
     expect(res.body.pedido).toHaveProperty('id');
+    expect(res.body.pedido).toHaveProperty('unidad_negocio_id', unidadId); // Verificamos la inferencia
     expect(res.body.pedido.detalles).toHaveLength(2);
     expect(res.body.pedido.detalles[0]).toHaveProperty('subtotal'); 
+  });
+
+  it('retorna 403 si un ADMIN_PLANTA intenta crear un pedido de venta', async () => {
+    const payload = {
+      usuario_id: adminId,
+      detalles: [
+        { producto_id: producto1Id, cantidad: 2 }
+      ]
+    };
+    
+    const res = await request(app).post('/api/pedidos-productos').send(payload);
+    
+    expect(res.statusCode).toBe(403);
+    expect(res.body.mensaje).toMatch(/la planta no puede crear pedidos/i);
   });
 });
 
@@ -61,7 +75,6 @@ describe('GET /api/pedidos-productos y /api/pedidos-productos/:id', () => {
   it('devuelve los nombres inyectados en el join lógico', async () => {
     // 1. Crear el pedido
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 2 } ]
     };
@@ -86,7 +99,6 @@ describe('PUT /api/pedidos-productos/:id', () => {
     await writeData('productos', productos);
 
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [
         { producto_id: producto1Id, cantidad: 2 },
@@ -110,7 +122,6 @@ describe('PUT /api/pedidos-productos/:id', () => {
 
   it('retorna 409 si se intenta modificar un pedido que no está PENDIENTE', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
@@ -133,7 +144,6 @@ describe('PUT /api/pedidos-productos/:id', () => {
 
   it('retorna 403 si un usuario distinto al creador y que no es ADMIN_PLANTA intenta editar el pedido', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
@@ -155,7 +165,6 @@ describe('PUT /api/pedidos-productos/:id', () => {
 describe('DELETE /api/pedidos-productos/:id', () => {
   it('cancela el pedido (soft delete) si está PENDIENTE', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
@@ -171,7 +180,6 @@ describe('DELETE /api/pedidos-productos/:id', () => {
 
   it('retorna 409 si se intenta cancelar un pedido que no está PENDIENTE', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
@@ -190,7 +198,6 @@ describe('DELETE /api/pedidos-productos/:id', () => {
 
   it('retorna 403 si un usuario distinto al creador y que no es ADMIN_PLANTA intenta cancelar el pedido', async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
@@ -210,8 +217,7 @@ describe('PATCH /api/pedidos-productos/:id/estado', () => {
 
   beforeEach(async () => {
     const payload = {
-      unidad_negocio_id: unidadId,
-      usuario_id: adminId,
+      usuario_id: usuarioId, // Cambiado al encargado, ya que el Admin no puede crear pedidos
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
     const res = await request(app).post('/api/pedidos-productos').send(payload);

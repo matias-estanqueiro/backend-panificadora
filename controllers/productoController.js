@@ -53,26 +53,30 @@ const addProducto = async (req, res) => {
     const { nombre, precio_costo, precio_franquicia, activo } = validacion.data
     const codigo = generarCodigo(nombre)
     const productos = await readData('productos')
-    const duplicate = productos.find(e => e.codigo === codigo && e.activo !== false)
-    if (duplicate) {
-      return res.status(409).json({
-        error: true,
-        codigo_http: 409,
-        mensaje: 'El producto ya existe.'
-      })
+    const existente = productos.find(p => p.codigo === codigo);
+    if (existente) {
+      if (existente.activo !== false) {
+        return res.status(409).json({ error: true, codigo_http: 409, mensaje: 'El producto ya existe.' });
+      } else {
+        // Resurrección (Auto-Upsert)
+        existente.activo = true;
+        existente.nombre = nombre;
+        existente.precio_costo = precio_costo;
+        existente.precio_franquicia = precio_franquicia;
+        await writeData('productos', productos);
+        return res.status(200).json({ mensaje: 'Producto reactivado y actualizado exitosamente.', producto: existente });
+      }
     }
     const id = uuidv4()
     // El modelo espera: id, nombre, codigo, unidad, precio_costo, precio_franquicia, activo
-    // El campo 'unidad' no está en el schema, pero si el modelo lo requiere, tomarlo de req.body
-    const unidad = req.body.unidad || ''
-      const producto = new Producto(id, nombre, codigo, precio_costo, precio_franquicia, activo ?? true)
+    const producto = new Producto(id, nombre, codigo, precio_costo, precio_franquicia, activo ?? true)
     await writeData('productos', [ ...productos, producto ])
     res.status(201).json({ message: `El producto con ID ${id} ha sido agregado correctamente.`, producto })
   } catch (error) {
     res.status(500).json({
       error: true,
       codigo_http: 500,
-      mensaje: `Error al agregar el producto con ID ${id}.`
+      mensaje: `Error al agregar el producto.`
     })
   }
 }
@@ -88,6 +92,9 @@ const updateProducto = async (req, res) => {
         codigo_http: 404,
         mensaje: `El producto con ID ${id} no fue encontrado.`
       })
+    }
+    if (productos[index].activo === false) {
+      return res.status(409).json({ error: true, codigo_http: 409, mensaje: 'No se puede editar un producto inactivo.' });
     }
     const validacion = productoSchema.safeParse(req.body)
     if (!validacion.success) {

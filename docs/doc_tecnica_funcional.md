@@ -100,9 +100,10 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 #### 4.1.2 Usuario
 * `id` (String/UUID)
 * `nombre` (String): Obligatorio. Min: 3, Max: 50. Solo letras y espacios. Regex: `^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$`
-* `email` (String, obligatorio, único, normalizado): Correo electrónico del usuario. Debe ser único entre usuarios activos. Se almacena en minúsculas y sin espacios. Validado primero por formato (Zod) y luego por unicidad (negocio, error 409).
+* `email` (String, obligatorio, único, normalizado): Correo electrónico del usuario. Debe ser único entre usuarios activos. Se almacena en minúsculas y sin espacios.
 * `unidad_negocio_id` (String/UUID): Referencia cruzada. Debe existir y estar activa.
 * `rol` (Enum): `['ADMIN_PLANTA', 'ENCARGADO_SUCURSAL', 'FRANQUICIADO']`.
+* **Regla de Negocio (Validación Cruzada):** El sistema rechaza (409) la asignación si el Rol no coincide con el Tipo de la Unidad de Negocio (Ej. `ADMIN_PLANTA` exige `PLANTA_CENTRAL`).
 * `activo` (Boolean)
 
 #### 4.1.3 Producto
@@ -115,7 +116,7 @@ Para la Fase 1, las colecciones se instanciarán en memoria. Los identificadores
 
 #### 4.1.4 Pedido (Venta/Reposición)
 * `id` (String/UUID)
-* `unidad_negocio_id` (String/UUID): Sucursal/Franquicia solicitante.
+* `unidad_negocio_id` (String/UUID): Sucursal/Franquicia solicitante. **Inferido por el backend, no viaja en el payload.**
 * `usuario_id` (String/UUID): Operador que registró el pedido.
 * `estado` (Enum): `['PENDIENTE', 'EN_PRODUCCION', 'DESPACHADO', 'ENTREGADO']`.
 * `fecha` (date): fecha de creación del pedido
@@ -281,6 +282,8 @@ Dada la naturaleza interna de esta operación, cuenta con una máquina de estado
 * **Validación estructural:** Todos los controladores ejecutan primero la validación de Zod sobre el payload. Si falla, devuelven 400 con detalles.
 * **Validación de unicidad:** Si el payload es válido, se valida unicidad de email/código (409 si hay duplicado).
 * **Validación referencial:** Se valida existencia de entidades relacionadas (404 si no existen, 409 si hay conflicto de negocio).
+* **Auto-Upsert (Resurrección):** Si se detecta una violación de unicidad (código/email) en un registro marcado como `activo: false`, el sistema lo reactiva y actualiza, respondiendo HTTP 200 en vez de 409 o 201.
+* **Bloqueo en Modificación:** No está permitida la edición (PUT/PATCH) de ninguna entidad del catálogo de negocio que haya sido dada de baja lógicamente.
 
 ### 7.2 Congelamiento de Valor y Precios
 Al crear un pedido, es responsabilidad del backend asignar el precio correcto (Costo o Franquicia) según el tipo de Unidad de Negocio, congelando el `precio_unitario` en la tabla `DetallePedido`.
@@ -304,7 +307,7 @@ Baja Lógica (`Soft Delete`). Solo se permiten cancelaciones en estado `PENDIENT
 * **D:** Baja lógica (`activo: false`) si existen dependencias.
 
 ### 8.2 Módulo: Gestión de Pedidos de Venta (`/api/pedidos-productos`)
-* **C:** Crea cabecera y múltiples `DetallePedido`. Congela el precio.
+* **C:** Crea cabecera y múltiples `DetallePedido`. Infiere automáticamente la `unidad_negocio_id` a partir del usuario creador para asegurar la consistencia. **Regla de Negocio:** La creación está bloqueada (HTTP 403) para el rol `ADMIN_PLANTA`. Congela el precio al momento de la carga.
 * **R:** Historial filtrado según RBAC con Join lógico.
 * **U:** Actualización restringida al estado `PENDIENTE`. Utiliza el patrón de **Reemplazo Total**. Recalcula precios automáticamente. **Seguridad:** Requiere `usuario_id` en el payload; solo el creador original o un `ADMIN_PLANTA` pueden ejecutarla.
 * **D:** Baja lógica pasando el estado a `CANCELADO`. Solo permitido si el estado es `PENDIENTE`. **Seguridad:** Requiere `usuario_id` validado por Zod y reglas de autoría (igual que el PUT).
