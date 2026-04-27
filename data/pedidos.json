@@ -1,19 +1,44 @@
 [
     {
-        "id": "c161e3ca-2f32-411d-b097-c5f17a439115",
-        "unidad_negocio_id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
-        "usuario_id": "42fc6cbf-60b3-4f6d-a19c-fed50272ee6b",
+        "id": "77feb8b6-0622-4313-9d25-96d818069bf6",
+        "unidad_negocio_id": "e5ba68d6-a343-4be7-bd41-584dfc5b18ae",
+        "usuario_id": "97e19349-0f0d-4a6a-b628-a0eec4b8a6a9",
         "detalles": [
             {
-                "id": "f69fd52d-43f2-4813-99c7-d119767e52f4",
-                "pedido_id": "c161e3ca-2f32-411d-b097-c5f17a439115",
-                "producto_id": "8952d0a2-04d4-4827-b26a-8d05a595d6fe",
-                "cantidad": 1,
-                "precio_unitario": 10,
-                "subtotal": 10
+                "id": "61c49c95-dde1-44d5-9e12-1e7f357bad59",
+                "pedido_id": "77feb8b6-0622-4313-9d25-96d818069bf6",
+                "producto_id": "8bf507b9-de1f-42cc-a432-be40fd93e983",
+                "cantidad": 10,
+                "precio_unitario": 7000,
+                "subtotal": 70000
             }
         ],
         "estado": "EN_PRODUCCION",
-        "fecha": "2026-04-26T21:24:15.408Z"
+        "fecha": "2026-04-27T18:14:28.516Z"
+    },
+    {
+        "id": "c12166f8-7c2f-46ca-bad6-e1c9b49c1a12",
+        "unidad_negocio_id": "9ebb5d2f-091c-4e24-b921-85aba6eef8ea",
+        "usuario_id": "5940464a-448c-4d4e-abd0-73036d8d12f7",
+        "detalles": [
+            {
+                "id": "b4bd1521-0fbf-4b72-a916-15f62e93df9d",
+                "pedido_id": "c12166f8-7c2f-46ca-bad6-e1c9b49c1a12",
+                "producto_id": "8bf507b9-de1f-42cc-a432-be40fd93e983",
+                "cantidad": 35,
+                "precio_unitario": 3000,
+                "subtotal": 105000
+            },
+            {
+                "id": "eb8c6a90-8848-4065-8413-be76bb611ca7",
+                "pedido_id": "c12166f8-7c2f-46ca-bad6-e1c9b49c1a12",
+                "producto_id": "9083e473-fab9-453c-a997-8df6dbec72af",
+                "cantidad": 10,
+                "precio_unitario": 1000,
+                "subtotal": 10000
+            }
+        ],
+        "estado": "PENDIENTE",
+        "fecha": "2026-04-27T18:15:12.463Z"
     }
 ]

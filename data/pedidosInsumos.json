@@ -1,0 +1,22 @@
+[
+    {
+        "id": "1cd1dade-5368-483d-a8d2-c0946af69569",
+        "usuario_id": "08950da2-67ee-4614-ba72-a0dec1b36987",
+        "detalles": [
+            {
+                "id": "44f16574-29b7-4dc8-9321-d0a03bcda905",
+                "pedido_insumo_id": "1cd1dade-5368-483d-a8d2-c0946af69569",
+                "insumo_id": "8f69b351-e155-4f00-8995-07378a9f9ea2",
+                "cantidad": 10000
+            },
+            {
+                "id": "06e45cec-1495-432b-a743-74722ae10659",
+                "pedido_insumo_id": "1cd1dade-5368-483d-a8d2-c0946af69569",
+                "insumo_id": "db3f7b9d-7d84-4222-8a91-dd8dece1e5ca",
+                "cantidad": 500
+            }
+        ],
+        "fecha_pedido": "2026-04-27T17:51:17.528Z",
+        "estado": "RECIBIDO"
+    }
+]

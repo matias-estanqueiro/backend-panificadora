@@ -25,7 +25,7 @@ const getUsuario = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `Usuario not found with ID ${id}`
+        mensaje: `El usuario con ID ${id} no fue encontrado.`
       })
     }
     res.json(usuario)
@@ -72,12 +72,12 @@ const addUsuario = async (req, res) => {
     const id = uuidv4()
     const usuario = new Usuario(id, nombre, emailNorm, rol, unidad_negocio_id, true)
     await writeData('usuarios', [ ...usuarios, usuario ])
-    res.status(201).json({ message: 'Usuario added.', usuario })
+    res.status(201).json({ message: 'El usuario ha sido agregado correctamente.', usuario })
   } catch (error) {
     res.status(500).json({
       error: true,
       codigo_http: 500,
-      mensaje: 'Error al agregar usuario.'
+      mensaje: 'Error al agregar el usuario.'
     })
   }
 }
@@ -91,7 +91,7 @@ const updateUsuario = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `Usuario not found with ID ${id}`
+        mensaje: `El usuario con ID ${id} no fue encontrado.`
       })
     }
     const validacion = usuarioSchema.safeParse(req.body)
@@ -137,12 +137,12 @@ const updateUsuario = async (req, res) => {
     }
     if (activo !== undefined) usuarios[index].activo = activo
     await writeData('usuarios', usuarios)
-    res.json({ message: 'Usuario actualizado.', usuario: usuarios[index] })
+    res.json({ message: 'El usuario ha sido actualizado correctamente.', usuario: usuarios[index] })
   } catch (error) {
     res.status(500).json({
       error: true,
       codigo_http: 500,
-      mensaje: 'Error al actualizar usuario.'
+      mensaje: 'Error al actualizar el usuario.'
     })
   }
 }
@@ -156,19 +156,19 @@ const deleteUsuario = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `Usuario not found with ID ${id}`
+        mensaje: `El usuario con ID ${id} no fue encontrado.`
       })
     }
     if (usuarios[index].activo === false) {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: `Usuario with ID ${id} ya está dado de baja.`
+        mensaje: `El usuario con ID ${id} ya está dado de baja.`
       })
     }
     usuarios[index].activo = false
     await writeData('usuarios', usuarios)
-    res.json({ message: `Usuario with ID ${id} dado de baja (soft delete).` })
+    res.json({ message: `El usuario con ID ${id} ha sido dado de baja (soft delete).` })
   } catch (error) {
     res.status(500).json({
       error: true,

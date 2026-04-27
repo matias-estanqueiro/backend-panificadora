@@ -1,16 +1,18 @@
 [
     {
-        "id": "8952d0a2-04d4-4827-b26a-8d05a595d6fe",
-        "nombre": "Pan",
-        "precio_costo": 10,
-        "precio_franquicia": 15,
+        "id": "9083e473-fab9-453c-a997-8df6dbec72af",
+        "nombre": "Pan Frances",
+        "codigo": "PAN-FRANCES",
+        "precio_costo": 1000,
+        "precio_franquicia": 1500,
         "activo": true
     },
     {
-        "id": "e89cbdf4-8d1d-4887-8ca6-983c934e8030",
-        "nombre": "Facturas",
-        "precio_costo": 20,
-        "precio_franquicia": 25,
+        "id": "8bf507b9-de1f-42cc-a432-be40fd93e983",
+        "nombre": "Torta Ricota",
+        "codigo": "TORTA-RICOTA",
+        "precio_costo": 3000,
+        "precio_franquicia": 7000,
         "activo": true
     }
 ]

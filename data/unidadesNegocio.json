@@ -1,14 +1,26 @@
 [
     {
-        "id": "e6fff0fb-6360-4224-a7ae-deded99f4c5b",
-        "nombre": "Sucursal 1",
-        "tipo": "SUCURSAL_PROPIA",
+        "id": "5b3917fe-e874-4f6e-a712-d282f001ad56",
+        "nombre": "Planta Central San Justo",
+        "codigo": "PLANTA-CENTRAL-SAN-JUSTO",
+        "tipo": "PLANTA_CENTRAL",
+        "direccion": "Ruta 3 Km 20",
         "activo": true
     },
     {
-        "id": "5240ef65-c4c2-4e9a-b03f-b8fbaffe4ed3",
-        "nombre": "Franquicia 1",
+        "id": "e5ba68d6-a343-4be7-bd41-584dfc5b18ae",
+        "nombre": "Franquicia San Justo",
+        "codigo": "FRANQUICIA-SAN-JUSTO",
         "tipo": "FRANQUICIA",
+        "direccion": "Arieta 2345",
+        "activo": true
+    },
+    {
+        "id": "9ebb5d2f-091c-4e24-b921-85aba6eef8ea",
+        "nombre": "Local Propio San Justo",
+        "codigo": "LOCAL-PROPIO-SAN-JUSTO",
+        "tipo": "SUCURSAL_PROPIA",
+        "direccion": "Ocampo 333",
         "activo": true
     }
 ]

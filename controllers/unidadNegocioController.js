@@ -26,7 +26,7 @@ const getUnidadNegocio = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `UnidadNegocio not found with ID ${id}`
+        mensaje: `La unidad de negocio con ID ${id} no fue encontrada.`
       })
     }
     res.json(unidad)
@@ -58,13 +58,13 @@ const addUnidadNegocio = async (req, res) => {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: 'La entidad ya existe.'
+        mensaje: 'La unidad de negocio ya existe.'
       })
     }
     const id = uuidv4()
     const unidad = new UnidadNegocio(id, nombre, codigo, tipo, direccion, activo ?? true)
     await writeData('unidadesNegocio', [ ...unidades, unidad ])
-    res.status(201).json({ message: 'UnidadNegocio added.', unidad })
+    res.status(201).json({ message: 'La unidad de negocio ha sido agregada correctamente.', unidad })
   } catch (error) {
     res.status(500).json({
       error: true,
@@ -83,7 +83,7 @@ const updateUnidadNegocio = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `UnidadNegocio not found with ID ${id}`
+        mensaje: `La unidad de negocio con ID ${id} no fue encontrada.`
       })
     }
     const validacion = unidadNegocioSchema.safeParse(req.body)
@@ -104,7 +104,7 @@ const updateUnidadNegocio = async (req, res) => {
         return res.status(409).json({
           error: true,
           codigo_http: 409,
-          mensaje: 'La entidad ya existe.'
+          mensaje: 'La unidad de negocio ya existe.'
         })
       }
       unidades[index].nombre = nombre
@@ -114,7 +114,7 @@ const updateUnidadNegocio = async (req, res) => {
     if (direccion !== undefined) unidades[index].direccion = direccion
     if (activo !== undefined) unidades[index].activo = activo
     await writeData('unidadesNegocio', unidades)
-    res.json({ message: 'UnidadNegocio actualizada.', unidad: unidades[index] })
+    res.json({ message: 'La unidad de negocio ha sido actualizada correctamente.', unidad: unidades[index] })
   } catch (error) {
     res.status(500).json({
       error: true,
@@ -134,19 +134,19 @@ const deleteUnidadNegocio = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `UnidadNegocio not found with ID ${id}`
+        mensaje: `La unidad de negocio con ID ${id} no fue encontrada.`
       })
     }
     if (unidades[index].activo === false) {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: `UnidadNegocio with ID ${id} ya está dada de baja.`
+        mensaje: `La unidad de negocio con ID ${id} ya está dada de baja.`
       })
     }
     unidades[index].activo = false
     await writeData('unidadesNegocio', unidades)
-    res.json({ message: `UnidadNegocio with ID ${id} dada de baja (soft delete).` })
+    res.json({ message: `La unidad de negocio con ID ${id} ha sido dada de baja (soft delete).` })
   } catch (error) {
     res.status(500).json({
       error: true,

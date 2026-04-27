@@ -95,6 +95,18 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 * **precio_unitario** (Number): Generado por el backend al momento de crear el pedido (se "congela" el precio vigente según el tipo de unidad de negocio). Mayor o igual a 0.
 * **subtotal** (Number): Generado por el backend (`cantidad * precio_unitario`). Mayor o igual a 0.
 
+### 4.7 PedidoInsumo (Abastecimiento)
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **usuario_id** (String/UUID): Obligatorio. Referencia al Administrador de Planta que solicita.
+* **fecha_pedido** (String/ISO 8601 Date): Generada automáticamente al momento de la creación.
+* **estado** (String): Obligatorio. Valores estrictos (Enum): `["PENDIENTE", "RECIBIDO"]`. Valor por defecto al crear: `PENDIENTE`.
+
+### 4.8 DetalleInsumo
+* **id** (String/UUID): Generado automáticamente por el sistema.
+* **pedido_insumo_id** (String/UUID): Obligatorio. Referencia al PedidoInsumo cabecera.
+* **insumo_id** (String/UUID): Obligatorio. Referencia al Insumo solicitado.
+* **cantidad** (Number): Obligatorio. Número entero estrictamente mayor a 0.
+
 ## 5. Flujos Operativos y Máquinas de Estado
 
 ### Persistencia y Validación
@@ -110,12 +122,12 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 5. **CANCELADO**: Pedido anulado (Soft Delete). Solo se puede pasar a este estado si el pedido estaba en PENDIENTE.
 
 **Transiciones y RBAC:**
-- El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos/:id/estado`.
-- Solo usuarios con rol `ADMIN_PLANTA` pueden ejecutar cambios de estado (RBAC estricto).
+- El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos-productos/:id/estado`.
+- Para las operaciones `PUT` (edición) y `DELETE` (cancelación), el sistema exige el `usuario_id` en el cuerpo de la petición. El sistema solo permitirá la operación si el usuario es el creador original del pedido o si posee el rol `ADMIN_PLANTA`.
 - El endpoint valida la transición permitida según la máquina de estados y aborta con error si la transición es inválida.
 
 **PUT y Reemplazo Total:**
-- El endpoint `PUT /api/pedidos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
+- El endpoint `PUT /api/pedidos-productos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
 
 **Soft Delete:**
 - Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
@@ -123,6 +135,11 @@ La propiedad `codigo` es un identificador de tipo String, autogenerado a partir 
 ### 5.2 Flujo de Abastecimiento (Insumos)
 1.  **PENDIENTE:** Orden de compra emitida por la Planta.
 2.  **RECIBIDO:** La materia prima ingresó a la Planta. **Regla de Negocio:** Al pasar a este estado, el sistema debe aumentar el `stock_actual` del Insumo correspondiente automáticamente.
+3.  **CANCELADO:** Pedido anulado (Soft Delete). Solo se puede pasar a este estado si el pedido estaba en PENDIENTE.
+
+**Transiciones y RBAC:**
+- El cambio de estado se realiza exclusivamente mediante `PATCH /api/pedidos-insumos/:id/estado`.
+- Todas las operaciones del flujo de insumos (Creación, Edición, Cancelación y Recepción) requieren validación de identidad enviando el `usuario_id` en el payload. Solo los usuarios con el rol `ADMIN_PLANTA` están autorizados para interactuar con este módulo.
 
 ## 6. Reportes Estratégicos (Casos de Uso Analíticos)
 * **Demanda Consolidada:** Agrupa todos los `DetallePedido` de los pedidos en estado `PENDIENTE` para sumarizar la cantidad total a producir de cada panificado.

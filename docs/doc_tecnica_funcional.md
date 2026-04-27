@@ -73,15 +73,16 @@ El sistema implementa un modelo de Control de Acceso Basado en Roles (RBAC) vinc
 
 | Módulo | Operación | Admin Planta | Encargado Sucursal | Franquiciado |
 | :--- | :--- | :---: | :---: | :---: |
-| **Productos** | Crear/Editar/Borrar | Sí | No | No |
+| **Productos** | Crear / Editar / Borrar | Sí | No | No |
 | | Ver Catálogo / Precios | Sí | Sí (Costo) | Sí (Venta) |
-| **UnidadNegocio** | Crear/Editar/Borrar | Sí | No | No |
+| **UnidadNegocio** | Crear / Editar / Borrar | Sí | No | No |
 | | Ver Datos Propios | Sí | Sí | Sí |
-| **Pedidos (Ventas)**| Crear nuevo | No | Sí | Sí |
-| | Editar/Cancelar (PENDIENTE) | Sí | Sí (Propios) | Sí (Propios) |
+| **Pedidos (Ventas)** | Crear Nuevo | No | Sí | Sí |
+| | Editar / Cancelar (Solo PENDIENTE) | Sí | Sí (Solo Propios) | Sí (Solo Propios) |
 | | Cambiar Estado | Sí | No | No |
-| **Pedidos Insumos**| Crear/Editar/Borrar | Sí | No | No |
-| | Consultar Stock | Sí | No | No |
+| **Pedidos Insumos** | CRUD Completo (POST, GET, PUT, DELETE) | Sí | No | No |
+| | Cambiar Estado (PATCH - RECIBIDO) | Sí | No | No |
+| | Consultar Stock Insumos | Sí | No | No |
 
 ## 4. Modelo de Dominio y Diccionario de Datos
 
@@ -272,6 +273,7 @@ erDiagram
 Dada la naturaleza interna de esta operación, cuenta con una máquina de estados simplificada:
 1. **PENDIENTE**: Orden de compra emitida al proveedor.
 2. **RECIBIDO**: El insumo ingresa a la Planta. En este punto el sistema debe actualizar el `stock_actual` de cada insumo.
+3. **CANCELADO**: Anulación lógica del pedido.
 
 ## 7. Reglas de Negocio, Validaciones y Manejo de Errores
 
@@ -301,19 +303,19 @@ Baja Lógica (`Soft Delete`). Solo se permiten cancelaciones en estado `PENDIENT
 * **R:** Lista los productos. Intercepta el rol y devuelve el precio correspondiente.
 * **D:** Baja lógica (`activo: false`) si existen dependencias.
 
-### 8.2 Módulo: Gestión de Pedidos de Venta (`/api/pedidos`)
+### 8.2 Módulo: Gestión de Pedidos de Venta (`/api/pedidos-productos`)
 * **C:** Crea cabecera y múltiples `DetallePedido`. Congela el precio.
 * **R:** Historial filtrado según RBAC con Join lógico.
-* **U:** Actualización restringida al estado `PENDIENTE`. Utiliza el patrón de **Reemplazo Total**: el payload enviado en el array `detalles` sobrescribe por completo los detalles anteriores del pedido. Recalcula automáticamente los precios congelados y subtotales en base al catálogo actual.
-* **D:** Baja lógica pasando el estado a `CANCELADO`. Solo permitido si el estado actual es `PENDIENTE`.
+* **U:** Actualización restringida al estado `PENDIENTE`. Utiliza el patrón de **Reemplazo Total**. Recalcula precios automáticamente. **Seguridad:** Requiere `usuario_id` en el payload; solo el creador original o un `ADMIN_PLANTA` pueden ejecutarla.
+* **D:** Baja lógica pasando el estado a `CANCELADO`. Solo permitido si el estado es `PENDIENTE`. **Seguridad:** Requiere `usuario_id` validado por Zod y reglas de autoría (igual que el PUT).
 
 ### 8.3 Módulo: Unidades de Negocio y Actores (`/api/unidades`, `/api/usuarios`)
 Gestión de locaciones y control de acceso RBAC. 
 
-### 8.4 Módulo: Abastecimiento de Insumos (`/api/insumos` y `/api/insumos/pedidos`)
+### 8.4 Módulo: Abastecimiento de Insumos (`/api/insumos` y `/api/pedidos-insumos`)
 * **Insumos (CRUD):** ABM de materias primas. Restringido a `ADMIN_PLANTA`.
-* **Pedidos de Insumos (POST/GET/PUT):** Crea la orden (`PedidoInsumo`) y sus detalles (`DetalleInsumo`). 
-* **Regla de Negocio Crítica:** Al cambiar el estado de un Pedido de Insumos a `RECIBIDO`, el controlador debe recorrer los detalles y sumar la cantidad al `stock_actual` del Insumo correspondiente en el catálogo.
+* **Pedidos de Insumos (POST/GET/PUT/DELETE):** Ciclo completo de la orden (`PedidoInsumo`) y sus detalles (`DetalleInsumo`). Todas las operaciones de mutación requieren un `usuario_id` válido con rol `ADMIN_PLANTA`.
+* **Regla de Negocio Crítica:** Al cambiar el estado de un Pedido de Insumos a `RECIBIDO` mediante el método `PATCH`, el controlador recorre los detalles y suma la cantidad al `stock_actual` del Insumo correspondiente en el catálogo.
 
 ## 9. Consultas Estratégicas (Endpoints de Lectura Agrupada)
 

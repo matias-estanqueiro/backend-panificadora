@@ -4,16 +4,16 @@ import { limpiarData } from './helpers/limpiarData.js';
 import { v4 as uuidv4 } from 'uuid';
 import { writeData, readData } from '../lib/fs.js';
 
-let unidadId, unidadId2, usuarioId, usuarioId2, producto1Id, producto2Id;
+let unidadId, unidadId2, usuarioId, usuarioId2, adminId, producto1Id, producto2Id;
 
 beforeEach(async () => {
   await limpiarData();
-  
   // Generar UUIDs reales para la prueba
   unidadId = uuidv4();
   unidadId2 = uuidv4();
   usuarioId = uuidv4();
   usuarioId2 = uuidv4();
+  adminId = uuidv4();
   producto1Id = uuidv4();
   producto2Id = uuidv4();
 
@@ -22,13 +22,14 @@ beforeEach(async () => {
     { id: unidadId, nombre: 'Sucursal 1', tipo: 'SUCURSAL_PROPIA', activo: true },
     { id: unidadId2, nombre: 'Franquicia 1', tipo: 'FRANQUICIA', activo: true }
   ]);
-  
+
   // 2. Sembrar Usuarios
   await writeData('usuarios', [
-    { id: usuarioId, nombre: 'Juan', unidad_negocio_id: unidadId, activo: true },
-    { id: usuarioId2, nombre: 'Ana', unidad_negocio_id: unidadId2, activo: true }
+    { id: usuarioId, nombre: 'Juan', email: 'juan@espiga.com', rol: 'ENCARGADO_SUCURSAL', unidad_negocio_id: unidadId, activo: true },
+    { id: usuarioId2, nombre: 'Ana', email: 'ana@espiga.com', rol: 'ENCARGADO_SUCURSAL', unidad_negocio_id: unidadId2, activo: true },
+    { id: adminId, nombre: 'Admin', email: 'admin@espiga.com', rol: 'ADMIN_PLANTA', unidad_negocio_id: unidadId, activo: true }
   ]);
-  
+
   // 3. Sembrar Productos
   await writeData('productos', [
     { id: producto1Id, nombre: 'Pan', precio_costo: 10, precio_franquicia: 15, activo: true },
@@ -36,7 +37,7 @@ beforeEach(async () => {
   ]);
 });
 
-describe('POST /api/pedidos', () => {
+describe('POST /api/pedidos-productos', () => {
   it('crea un pedido exitosamente calculando subtotales', async () => {
     const payload = {
       unidad_negocio_id: unidadId,
@@ -47,17 +48,16 @@ describe('POST /api/pedidos', () => {
       ]
     };
     
-    const res = await request(app).post('/api/pedidos').send(payload);
+    const res = await request(app).post('/api/pedidos-productos').send(payload);
     
     expect(res.statusCode).toBe(201);
     expect(res.body.pedido).toHaveProperty('id');
     expect(res.body.pedido.detalles).toHaveLength(2);
-    // Verifica que el controlador calculó el subtotal internamente
     expect(res.body.pedido.detalles[0]).toHaveProperty('subtotal'); 
   });
 });
 
-describe('GET /api/pedidos y /api/pedidos/:id', () => {
+describe('GET /api/pedidos-productos y /api/pedidos-productos/:id', () => {
   it('devuelve los nombres inyectados en el join lógico', async () => {
     // 1. Crear el pedido
     const payload = {
@@ -65,11 +65,11 @@ describe('GET /api/pedidos y /api/pedidos/:id', () => {
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 2 } ]
     };
-    const resPost = await request(app).post('/api/pedidos').send(payload);
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
     const pedidoId = resPost.body.pedido.id;
 
     // 2. Probar el GET
-    const resGet = await request(app).get(`/api/pedidos/${pedidoId}`);
+    const resGet = await request(app).get(`/api/pedidos-productos/${pedidoId}`);
     
     expect(resGet.statusCode).toBe(200);
     expect(resGet.body).toHaveProperty('nombre_unidad_negocio', 'Sucursal 1');
@@ -78,15 +78,13 @@ describe('GET /api/pedidos y /api/pedidos/:id', () => {
   });
 });
 
-describe('PUT /api/pedidos/:id', () => {
+describe('PUT /api/pedidos-productos/:id', () => {
   it('actualiza un pedido usando el patrón de Reemplazo Total', async () => {
-    // 1. Crear un tercer producto "al vuelo"
     const producto3Id = uuidv4();
     const productos = await readData('productos');
     productos.push({ id: producto3Id, nombre: 'Torta', precio_costo: 30, precio_franquicia: 40, activo: true });
     await writeData('productos', productos);
 
-    // 2. Crear pedido inicial con DOS productos
     const payload = {
       unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
@@ -95,59 +93,76 @@ describe('PUT /api/pedidos/:id', () => {
         { producto_id: producto2Id, cantidad: 1 }
       ]
     };
-    const resPost = await request(app).post('/api/pedidos').send(payload);
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
     const pedidoId = resPost.body.pedido.id;
 
-    // 3. PUT mandando un solo producto (el tercero nuevo)
     const updatePayload = {
+      usuario_id: usuarioId,
       detalles: [ { producto_id: producto3Id, cantidad: 5 } ]
     };
-    const resPut = await request(app).put(`/api/pedidos/${pedidoId}`).send(updatePayload);
+    const resPut = await request(app).put(`/api/pedidos-productos/${pedidoId}`).send(updatePayload);
     
     expect(resPut.statusCode).toBe(200);
-    // El array debe tener longitud 1 demostrando que los otros 2 se eliminaron
     expect(resPut.body.pedido.detalles).toHaveLength(1);
     expect(resPut.body.pedido.detalles[0].producto_id).toBe(producto3Id);
     expect(resPut.body.pedido.detalles[0].cantidad).toBe(5);
   });
 
   it('retorna 409 si se intenta modificar un pedido que no está PENDIENTE', async () => {
-    // 1. Crear pedido
     const payload = {
       unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
-    const resPost = await request(app).post('/api/pedidos').send(payload);
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
     const pedidoId = resPost.body.pedido.id;
 
-    // 2. Forzar estado a 'ENTREGADO' por detrás
     const pedidos = await readData('pedidos');
     pedidos[0].estado = 'ENTREGADO';
     await writeData('pedidos', pedidos);
 
-    // 3. Intentar actualizar
-    const updatePayload = { detalles: [ { producto_id: producto2Id, cantidad: 2 } ] };
-    const resPut = await request(app).put(`/api/pedidos/${pedidoId}`).send(updatePayload);
-    
+    const updatePayload = { 
+      usuario_id: usuarioId, 
+      detalles: [ { producto_id: producto2Id, cantidad: 2 } ] 
+    };
+    const resPut = await request(app).put(`/api/pedidos-productos/${pedidoId}`).send(updatePayload);
+
     expect(resPut.statusCode).toBe(409);
     expect(resPut.body).toMatchObject({ error: true, codigo_http: 409 });
   });
-});
 
-describe('DELETE /api/pedidos/:id', () => {
-  it('cancela el pedido (soft delete) si está PENDIENTE', async () => {
-    // 1. Crear pedido
+  it('retorna 403 si un usuario distinto al creador y que no es ADMIN_PLANTA intenta editar el pedido', async () => {
     const payload = {
       unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
-    const resPost = await request(app).post('/api/pedidos').send(payload);
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
+    const pedidoId = resPost.body.pedido.id;
+    
+    // Intentar editar con usuarioId2 (otro ENCARGADO_SUCURSAL)
+    const updatePayload = { 
+      usuario_id: usuarioId2, 
+      detalles: [ { producto_id: producto2Id, cantidad: 2 } ] 
+    };
+    const resPut = await request(app).put(`/api/pedidos-productos/${pedidoId}`).send(updatePayload);
+    
+    expect(resPut.statusCode).toBe(403);
+    expect(resPut.body).toMatchObject({ error: true, codigo_http: 403 });
+  });
+});
+
+describe('DELETE /api/pedidos-productos/:id', () => {
+  it('cancela el pedido (soft delete) si está PENDIENTE', async () => {
+    const payload = {
+      unidad_negocio_id: unidadId,
+      usuario_id: usuarioId,
+      detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
+    };
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
     const pedidoId = resPost.body.pedido.id;
 
-    // 2. Borrar pedido
-    const resDel = await request(app).delete(`/api/pedidos/${pedidoId}`);
+    const resDel = await request(app).delete(`/api/pedidos-productos/${pedidoId}`).send({ usuario_id: usuarioId });
     
     expect(resDel.statusCode).toBe(200);
     const pedidos = await readData('pedidos');
@@ -155,50 +170,51 @@ describe('DELETE /api/pedidos/:id', () => {
   });
 
   it('retorna 409 si se intenta cancelar un pedido que no está PENDIENTE', async () => {
-    // 1. Crear pedido
     const payload = {
       unidad_negocio_id: unidadId,
       usuario_id: usuarioId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
-    const resPost = await request(app).post('/api/pedidos').send(payload);
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
     const pedidoId = resPost.body.pedido.id;
 
-    // 2. Forzar estado a 'EN_PRODUCCION'
     const pedidos = await readData('pedidos');
     pedidos[0].estado = 'EN_PRODUCCION';
     await writeData('pedidos', pedidos);
 
-    // 3. Intentar borrar
-    const resDel = await request(app).delete(`/api/pedidos/${pedidoId}`);
+    const resDel = await request(app).delete(`/api/pedidos-productos/${pedidoId}`).send({ usuario_id: usuarioId });
     
     expect(resDel.statusCode).toBe(409);
     expect(resDel.body).toMatchObject({ error: true, codigo_http: 409 });
   });
+
+  it('retorna 403 si un usuario distinto al creador y que no es ADMIN_PLANTA intenta cancelar el pedido', async () => {
+    const payload = {
+      unidad_negocio_id: unidadId,
+      usuario_id: usuarioId,
+      detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
+    };
+    const resPost = await request(app).post('/api/pedidos-productos').send(payload);
+    const pedidoId = resPost.body.pedido.id;
+    
+    // Intentar cancelar con usuarioId2 (otro ENCARGADO_SUCURSAL)
+    const resDel = await request(app).delete(`/api/pedidos-productos/${pedidoId}`).send({ usuario_id: usuarioId2 });
+    
+    expect(resDel.statusCode).toBe(403);
+    expect(resDel.body).toMatchObject({ error: true, codigo_http: 403 });
+  });
 });
 
-describe('PATCH /api/pedidos/:id/estado', () => {
-  let adminId, encargadoId, pedidoId;
+describe('PATCH /api/pedidos-productos/:id/estado', () => {
+  let pedidoId;
 
   beforeEach(async () => {
-    // Crear un usuario ADMIN_PLANTA y uno ENCARGADO_SUCURSAL
-    adminId = uuidv4();
-    encargadoId = uuidv4();
-    // Agregar ambos usuarios a la base
-    const usuarios = await readData('usuarios');
-    usuarios.push(
-      { id: adminId, nombre: 'Admin Planta', email: 'admin@planta.com', rol: 'ADMIN_PLANTA', unidad_negocio_id: unidadId, activo: true },
-      { id: encargadoId, nombre: 'Encargado', email: 'encargado@sucursal.com', rol: 'ENCARGADO_SUCURSAL', unidad_negocio_id: unidadId, activo: true }
-    );
-    await writeData('usuarios', usuarios);
-
-    // Crear un pedido PENDIENTE
     const payload = {
       unidad_negocio_id: unidadId,
       usuario_id: adminId,
       detalles: [ { producto_id: producto1Id, cantidad: 1 } ]
     };
-    const res = await request(app).post('/api/pedidos').send(payload);
+    const res = await request(app).post('/api/pedidos-productos').send(payload);
     pedidoId = res.body.pedido.id;
   });
 
@@ -208,7 +224,7 @@ describe('PATCH /api/pedidos/:id/estado', () => {
       estado: 'EN_PRODUCCION'
     };
     const res = await request(app)
-      .patch(`/api/pedidos/${pedidoId}/estado`)
+      .patch(`/api/pedidos-productos/${pedidoId}/estado`)
       .send(patchPayload);
     expect(res.statusCode).toBe(200);
     expect(res.body.estado).toBe('EN_PRODUCCION');
@@ -216,11 +232,11 @@ describe('PATCH /api/pedidos/:id/estado', () => {
 
   it('deniega acceso a un ENCARGADO_SUCURSAL (403)', async () => {
     const patchPayload = {
-      usuario_id: encargadoId,
+      usuario_id: usuarioId, // usuarioId es encargado en el setup
       estado: 'EN_PRODUCCION'
     };
     const res = await request(app)
-      .patch(`/api/pedidos/${pedidoId}/estado`)
+      .patch(`/api/pedidos-productos/${pedidoId}/estado`)
       .send(patchPayload);
     expect(res.statusCode).toBe(403);
     expect(res.body).toMatchObject({

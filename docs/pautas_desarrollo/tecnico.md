@@ -1,65 +1,48 @@
-# 4. Persistencia y Validación
-
-### Persistencia Asíncrona
-Todas las operaciones de lectura y escritura de datos se realizan mediante los métodos asíncronos `readData` y `writeData` del wrapper `lib/fs.js`. No se utiliza el módulo `fs` nativo en controladores ni tests.
-
-### Validación con Zod
-Todos los controladores validan primero la estructura y tipos de datos usando Zod. Si el payload es válido, se ejecutan validaciones de unicidad y referenciales. Los errores siguen el formato `{ error: true, codigo_http, mensaje }`.
-
-### Soft Delete
-Las bajas lógicas se implementan mediante la propiedad `activo: false` (o `estado: 'CANCELADO'` en pedidos), nunca eliminando físicamente los registros.
-
-### Máquina de Estados y RBAC
-El ciclo de vida de los pedidos sigue una máquina de estados estricta. El cambio de estado se realiza solo mediante `PATCH /api/pedidos/:id/estado` y solo puede ser ejecutado por usuarios con rol `ADMIN_PLANTA` (RBAC). El endpoint valida la transición y aborta con error si es inválida.
-
-### PUT como Reemplazo Total
-El endpoint `PUT /api/pedidos/:id` reemplaza completamente el array de detalles del pedido, recalculando precios y subtotales según el catálogo vigente. Solo permitido en estado `PENDIENTE`.
 # Documentación Técnica: Arquitectura y Restricciones del Sistema
 
-Este documento define las pautas arquitectónicas y técnicas obligatorias para el desarrollo del TP. Cualquier herramienta de generación de código (ej. Copilot) debe apegarse estrictamente a estas directrices.
+Este documento define las pautas arquitectónicas y técnicas obligatorias para el desarrollo del TP. Cualquier herramienta de generación de código debe apegarse estrictamente a estas directrices.
 
 ## 1. Stack Tecnológico y Arquitectura
 * **Backend:** Node.js.
 * **Framework:** Express.js (manejo de rutas dinámicas y middlewares).
 * **Motor de Vistas:** Pug (implementado a través de Express).
 * **Paradigma:** Programación Orientada a Objetos (POO). Las entidades lógicas deben representarse como Clases.
-* **Persistencia de Datos (OBLIGATORIO):** Archivos `.json` nativos (un archivo por entidad ej. `data/db.json`). El sistema de archivos actuará como base de datos.
+* **Persistencia de Datos (OBLIGATORIO):** Archivos `.json` nativos (un archivo por colección). El wrapper asíncrono `lib/fs.js` actúa como ORM/Controlador de persistencia. No se utiliza `fs` nativo en controladores.
 * **Formato de Intercambio:** RESTful APIs que devuelven JSON estandarizado.
 
 ## 2. Estructura Modular (Separación de Responsabilidades)
-El código debe estar organizado modularmente. Cada entidad/recurso (ej. Usuarios, Pedidos) debe implementar el patrón MVC/Capas:
+El código debe estar organizado modularmente. Cada entidad/recurso implementa el patrón MVC/Capas:
 * `/routes`: Definición de endpoints HTTP.
 * `/controllers`: Orquestación de lógica HTTP (manejo de `req` y `res`).
-* `/services` (o `/models`): Lógica de negocio (POO) y acceso de lectura/escritura a los archivos JSON.
+* `/lib`: Utilidades core (wrapper de `fs.js` y diccionarios de esquemas `schemas.js`).
+* `/models`: Definición de clases de dominio (POO).
 
-## 3. Especificación Transaccional y Relacional (Flujo CRUD Genérico)
-Dado que persistimos en JSON plano, las relaciones relacionales (Foráneas) se manejan vía lógica de negocio en Node.js usando UUIDs (`id`).
+## 3. Especificación Transaccional y Validaciones
 
-### 3.1 Operación de Alta (Create)
-* **Validación de Entrada:** Todos los endpoints `POST` deben verificar que el payload contenga los datos obligatorios.
-* **Validación Referencial:** Antes de guardar en el JSON, el controlador debe verificar que todas las referencias cruzadas existan.
-    * *Ejemplo:* Si se crea un `Pedido`, validar que el `unidad_negocio_id` y cada `producto_id` existan en la "base de datos" JSON y tengan el flag `activo: true`. Fallar con código HTTP 400 o 404 en caso contrario.
-* **Congelamiento de Datos:** Al insertar un `DetallePedido`, se debe copiar el precio actual del producto (evaluando si corresponde precio de costo o franquicia) hacia la línea de detalle para que quede inmutable ante futuros cambios de precio en el catálogo.
+### 3.1 Validación Estricta y Simetría de Esquemas (Zod)
+* Todos los controladores deben validar la estructura del `req.body` utilizando **Zod** antes de cualquier lógica de negocio.
+* **Simetría de Seguridad:** Todas las operaciones que muten el estado del sistema (`POST`, `PUT`, `PATCH`, `DELETE`) deben obligatoriamente requerir el campo `usuario_id` en el esquema de validación para garantizar trazabilidad y ejecución de reglas RBAC.
 
-### 3.2 Operaciones de Lectura (Read)
-* **Poblado de Relaciones (Join Lógico):** Los endpoints `GET` que devuelvan entidades compuestas deben inyectar la información relacionada en la respuesta JSON.
-    * *Ejemplo:* Al consultar un Pedido, la respuesta no debe tener solo un array de `producto_id`, sino que el servicio debe buscar en el JSON de productos e inyectar el nombre de cada panificado en la salida.
+### 3.2 Operación de Alta (Create)
+* **Validación Referencial:** Antes de guardar en el JSON, verificar que todas las referencias cruzadas existan y estén activas (`activo !== false`).
+* **Congelamiento de Datos:** Al insertar transacciones (ej. `DetallePedido`), se debe copiar el precio actual del catálogo hacia la línea de detalle para que quede inmutable ante futuros cambios de precio.
 
-### 3.3 Operaciones de Actualización (Update)
-* **Verificación de Estado:** Bloquear actualizaciones (PUT/PATCH) mediante código `409 Conflict` si la máquina de estados no lo permite (ej. intentar modificar un pedido que ya está `EN_PRODUCCION`).
-* **Validación:** Igual que en el Alta, cualquier nueva referencia agregada durante la edición debe validarse contra el archivo JSON.
-* **Patrón de Actualización de Arrays (Reemplazo Total):** Para entidades compuestas (como un `Pedido` y sus `detalles`), las peticiones `PUT` aplican un reemplazo destructivo. El backend no realiza fusiones (merge) ni deltas; el array recibido en el payload sobrescribe íntegramente al array almacenado.
+### 3.3 Operaciones de Lectura (Read) y Joins Lógicos
+* Los endpoints `GET` que devuelvan entidades compuestas deben inyectar la información relacionada en la respuesta JSON (ej. inyectar `usuario_nombre` e `insumo_nombre` resolviéndolos asíncronamente en el controlador).
 
-### 3.4 Operaciones de Baja (Delete)
-* **Dependencias Críticas:** Implementar lógica para prevenir la eliminación de registros "padre" que tengan registros "hijo".
-    * *Ejemplo:* Retornar `409 Conflict` si se intenta borrar un `Cliente/UnidadNegocio` que tiene pedidos activos.
-* **Baja Lógica (Soft Delete):** Para catálogos críticos (Productos, Insumos), la operación `DELETE` no debe remover físicamente el objeto del JSON, sino actualizar su propiedad `activo` a `false`.
+### 3.4 Operaciones de Actualización (Update)
+* **Verificación de Máquina de Estados:** Bloquear actualizaciones mediante código `409 Conflict` si el estado de la entidad no permite modificaciones (ej. distinto de `PENDIENTE`).
+* **Patrón de Reemplazo Total:** Las peticiones `PUT` aplican un reemplazo destructivo sobre los arrays hijos (ej. `detalles`). No se realizan fusiones; el array recibido sobrescribe íntegramente al almacenado.
+
+### 3.5 Operaciones de Baja (Delete)
+* **Baja Lógica (Soft Delete):** La operación `DELETE` no remueve físicamente el objeto del JSON. Actualiza su propiedad `activo` a `false` (en catálogos) o su estado a `CANCELADO` (en transacciones).
+* **Dependencias Críticas:** Retornar `409 Conflict` si se intenta dar de baja una entidad "padre" que posee dependencias activas (ej. Unidad de Negocio con pedidos pendientes).
 
 ## 4. Manejo de Errores Estandarizado
-Toda excepción o falla de validación debe ser atrapada (idealmente por un middleware global) y devolver un formato JSON estricto:
+Toda excepción o falla de validación (400, 403, 404, 409, 500) debe devolver un formato JSON estricto:
 ```json
 {
   "error": true,
   "codigo_http": 400,
-  "mensaje": "Descripción clara del error de validación o dependencia"
+  "mensaje": "Descripción clara del error de negocio o validación"
 }

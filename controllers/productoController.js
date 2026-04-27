@@ -58,7 +58,7 @@ const addProducto = async (req, res) => {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: 'La entidad ya existe.'
+        mensaje: 'El producto ya existe.'
       })
     }
     const id = uuidv4()
@@ -67,12 +67,12 @@ const addProducto = async (req, res) => {
     const unidad = req.body.unidad || ''
       const producto = new Producto(id, nombre, codigo, precio_costo, precio_franquicia, activo ?? true)
     await writeData('productos', [ ...productos, producto ])
-    res.status(201).json({ message: 'Producto added.', producto })
+    res.status(201).json({ message: `El producto con ID ${id} ha sido agregado correctamente.`, producto })
   } catch (error) {
     res.status(500).json({
       error: true,
       codigo_http: 500,
-      mensaje: 'Error al agregar producto.'
+      mensaje: `Error al agregar el producto con ID ${id}.`
     })
   }
 }
@@ -86,7 +86,7 @@ const updateProducto = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `Producto not found with ID ${id}`
+        mensaje: `El producto con ID ${id} no fue encontrado.`
       })
     }
     const validacion = productoSchema.safeParse(req.body)
@@ -107,7 +107,7 @@ const updateProducto = async (req, res) => {
         return res.status(409).json({
           error: true,
           codigo_http: 409,
-          mensaje: 'La entidad ya existe.'
+          mensaje: 'El producto ya existe.'
         })
       }
       productos[index].nombre = nombre
@@ -136,24 +136,24 @@ const deleteProducto = async (req, res) => {
       return res.status(404).json({
         error: true,
         codigo_http: 404,
-        mensaje: `Producto not found with ID ${id}`
+        mensaje: `El producto con ID ${id} no fue encontrado.`
       })
     }
     if (productos[index].activo === false) {
       return res.status(409).json({
         error: true,
         codigo_http: 409,
-        mensaje: `Producto with ID ${id} ya está dado de baja.`
+        mensaje: `El producto con ID ${id} ya está dado de baja.`
       })
     }
     productos[index].activo = false
     await writeData('productos', productos)
-    res.json({ message: `Producto with ID ${id} dado de baja (soft delete).` })
+    res.json({ message: `El producto con ID ${id} ha sido dado de baja (soft delete).` })
   } catch (error) {
     res.status(500).json({
       error: true,
       codigo_http: 500,
-      mensaje: 'Error al dar de baja el producto.'
+      mensaje: `Error al dar de baja el producto con ID ${id}.`
     })
   }
 }

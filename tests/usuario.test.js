@@ -69,7 +69,6 @@ describe('Módulo Usuario', () => {
     const res = await request(app)
       .post('/api/usuarios')
       .send({ nombre: 'UsuarioDos', email: 'duplicado@email.com', rol: 'ADMIN_PLANTA', unidad_negocio_id: unidadNegocioIdValida })
-    console.log('DETALLES ZOD:', res.body.detalles)
     expect(res.status).toBe(409)
     expect(res.body).toEqual({
       error: true,
